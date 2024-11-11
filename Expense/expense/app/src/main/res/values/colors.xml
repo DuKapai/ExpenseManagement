@@ -1,0 +1,30 @@
+<resources>
+    <color name="backgroundColor">#F5F5F5</color>
+    <color name="textColorPrimary">#212121</color>
+    <color name="buttonColor">#FF6600</color>
+    <color name="white">#FFFFFF</color>
+
+
+    <color name="outlineColor">#FFFFFF</color> <!-- Ví dụ màu trắng cho viền -->
+    <color name="hintColor">#DDDDDD</color> <!-- Ví dụ màu xám sáng cho gợi ý -->
+
+    <!-- Colors for TextInputEditText -->
+    <color name="textColor">#FFFFFF</color> <!-- Ví dụ màu trắng cho văn bản -->
+
+    <color name="light_orange">#FFCC99</color>
+
+
+    <color name="background_color">#F5F5F5</color>
+    <color name="text_primary">#333333</color>
+    <color name="text_secondary">#555555</color>
+    <color name="button_text">#FFFFFF</color>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+
+
+    <color name="primary_text_color">#212121</color> <!-- Đen đậm -->
+    <color name="accent_color">#F57C00</color> <!-- Cam -->
+    <color name="secondary_text_color">#757575</color> <!-- Xám -->
+    <color name="tertiary_text_color">#BDBDBD</color> <!-- Xám nhạt -->
+
+</resources>

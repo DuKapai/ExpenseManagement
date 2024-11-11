@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etSpendingName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Name"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/etSpendingAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Expectation (VND)"
+        android:inputType="number"/>
+
+    <EditText
+        android:id="@+id/etSpendingCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Snowing"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/etSpendingNotes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Notes"
+        android:inputType="textMultiLine"/>
+
+</LinearLayout>

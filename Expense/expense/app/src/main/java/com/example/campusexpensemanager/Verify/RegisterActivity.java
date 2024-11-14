@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Verify;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,10 +9,13 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.campusexpensemanager.R;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText edtFullName, edtEmail, edtPassword, edtPassword2;
@@ -53,8 +56,20 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (!isValidPassword(password)) {
+            Toast.makeText(this, "Password must include a number, a letter, and a special character", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Save account details to a file
         saveUserData("1", fullName, email, password);
+    }
+
+    // Method to check if the password meets the required criteria
+    private boolean isValidPassword(String password) {
+        // Regular expression to check for at least one letter, one number, and one special character
+        Pattern passwordPattern = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$");
+        return passwordPattern.matcher(password).matches();
     }
 
     private void saveUserData(String id, String name, String email, String password) {

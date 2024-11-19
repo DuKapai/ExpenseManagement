@@ -9,9 +9,9 @@
         android:icon="@drawable/payments"
         android:title="Expsense Tracker"/>
 
-    <item android:id="@+id/bottom_statistic"
+    <item android:id="@+id/bottom_notification"
         android:icon="@drawable/ic_align_vertical_bottom_247"
-        android:title="Statistic"/>
+        android:title="Notification"/>
 
     <item android:id="@+id/bottom_profile"
         android:icon="@drawable/person"

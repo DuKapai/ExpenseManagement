@@ -1,18 +1,6 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Data;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
-import com.example.campusexpensemanager.Expense.Expense;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -59,9 +47,7 @@ public class ExpenseDAO {
     // Get all expenses for a specific user
     public List<Expense> getAllExpenses(String userId) {
         List<Expense> expenses = new ArrayList<>();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_EXPENSES, null,
-                DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{userId},
-                null, null, DatabaseHelper.COLUMN_DATE_TIME + " DESC");
+        Cursor cursor = dbHelper.getUserExpenses(userId); // Using the method from DatabaseHelper
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
@@ -99,4 +85,3 @@ public class ExpenseDAO {
                 DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(expenseId)});
     }
 }
-

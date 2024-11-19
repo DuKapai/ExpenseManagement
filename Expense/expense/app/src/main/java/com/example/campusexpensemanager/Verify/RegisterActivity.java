@@ -8,7 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
+import com.example.campusexpensemanager.Data.UserDAO;
 import com.example.campusexpensemanager.R;
 
 import java.io.BufferedWriter;
@@ -61,8 +61,19 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Save account details to a file
-        saveUserData("1", fullName, email, password);
+        UserDAO userDAO = new UserDAO(this);
+        userDAO.open();
+
+        long result = userDAO.saveUserData(fullName, email, password);
+        if (result == -1) {
+            Toast.makeText(this, "Email already exists or registration failed", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        userDAO.close();
     }
 
     // Method to check if the password meets the required criteria
@@ -71,24 +82,25 @@ public class RegisterActivity extends AppCompatActivity {
         Pattern passwordPattern = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$");
         return passwordPattern.matcher(password).matches();
     }
+    // Method to save user data to the database using UserDAO
+    private void saveUserData(String fullName, String email, String password) {
+        // Using UserDAO to add user to the database
+        UserDAO userDAO = new UserDAO(this);
+        userDAO.open();
 
-    private void saveUserData(String id, String name, String email, String password) {
-        File file = new File(getFilesDir(), "userData.txt");
+        long result = userDAO.addUser(fullName, email, password);
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
-            String userData = id + "|" + name + "|" + email + "|" + password;
-            bw.write(userData);
-            bw.newLine();
+        if (result != -1) {
             Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
 
             // Move to LoginActivity upon successful registration
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(intent);
             finish(); // Close the registration screen
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error creating account. Try again.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
         }
+
+        userDAO.close();
     }
 }

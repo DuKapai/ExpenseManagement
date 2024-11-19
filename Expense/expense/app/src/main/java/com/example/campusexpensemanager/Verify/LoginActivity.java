@@ -11,13 +11,10 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.campusexpensemanager.Data.DatabaseHelper;
 import com.example.campusexpensemanager.HomeActivity;
 import com.example.campusexpensemanager.R;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
@@ -53,42 +50,24 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void checkLogin(String email, String password) {
-        File file = new File(getFilesDir(), "userData.txt");
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        boolean isValidUser = dbHelper.checkUser(email, password);
 
-        if (!file.exists()) {
-            progressDialog.dismiss();
-            Toast.makeText(this, "No user data found. Please register first.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        progressDialog.dismiss();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] userData = line.split("\\|");
-                if (userData.length == 4 && userData[2].equals(email) && userData[3].equals(password)) {
-                    progressDialog.dismiss();
+        if (isValidUser) {
+            // Store login session
+            SharedPreferences sharedPreferences = getSharedPreferences("userSession", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("USER_EMAIL", email);
+            editor.apply();
 
-                    // Store login session
-                    SharedPreferences sharedPreferences = getSharedPreferences("userSession", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("USER_ID", userData[0]);
-                    editor.putString("USER_NAME", userData[1]);
-                    editor.putString("USER_EMAIL", userData[2]);
-                    editor.apply();
-
-                    // Move to HomeActivity
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    startActivity(intent);
-                    finish();
-                    return;
-                }
-            }
-            progressDialog.dismiss();
+            // Navigate to HomeActivity
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
             Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            progressDialog.dismiss();
-            e.printStackTrace();
-            Toast.makeText(this, "Error logging in. Try again.", Toast.LENGTH_SHORT).show();
         }
     }
 }

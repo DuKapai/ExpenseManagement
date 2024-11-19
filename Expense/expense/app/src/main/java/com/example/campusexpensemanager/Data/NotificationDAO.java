@@ -1,6 +1,7 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Data;
 
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -52,7 +53,7 @@ public class NotificationDAO {
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                NotificationRecord notification = new NotificationRecord(
+                @SuppressLint("Range") NotificationRecord notification = new NotificationRecord(
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_ID)),
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ACTION_TYPE)),
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_EXPENSE_ID)),

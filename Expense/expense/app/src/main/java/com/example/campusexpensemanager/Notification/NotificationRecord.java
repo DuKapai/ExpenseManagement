@@ -2,7 +2,7 @@ package com.example.campusexpensemanager.Notification;
 
 import android.content.Context;
 
-import com.example.campusexpensemanager.DatabaseInitializer;
+import com.example.campusexpensemanager.Data.DatabaseInitializer;
 
 import java.util.Objects;
 

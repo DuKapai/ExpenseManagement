@@ -2,8 +2,11 @@ package com.example.campusexpensemanager.Expense;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,7 +26,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.campusexpensemanager.DatabaseInitializer;
+import com.example.campusexpensemanager.Data.DatabaseHelper;
+import com.example.campusexpensemanager.Data.DatabaseInitializer;
 import com.example.campusexpensemanager.Notification.Notification;
 import com.example.campusexpensemanager.Notification.NotificationRecord;
 import com.example.campusexpensemanager.R;
@@ -124,35 +128,64 @@ public class ExpenseTracker extends Fragment {
     }
 
     private void saveExpense(Expense expense) {
-        try (FileOutputStream fos = getActivity().openFileOutput("expenseData.txt", Context.MODE_PRIVATE | Context.MODE_APPEND)) {
-            String expenseString = expense.toString() + "\n";
-            fos.write(expenseString.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
+        SQLiteDatabase db = DatabaseInitializer.getDatabaseHelper().getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(DatabaseHelper.COLUMN_USER_ID, expense.getUserId());
+        values.put(DatabaseHelper.COLUMN_NAME, expense.getName());
+        values.put(DatabaseHelper.COLUMN_AMOUNT, expense.getAmount());
+        values.put(DatabaseHelper.COLUMN_CATEGORY, expense.getCategory());
+        values.put(DatabaseHelper.COLUMN_NOTES, expense.getNotes());
+        values.put(DatabaseHelper.COLUMN_DATE_TIME, expense.getDateTime());
+
+        long result = db.insert(DatabaseHelper.TABLE_EXPENSES, null, values);
+        if (result == -1) {
+            Toast.makeText(getActivity(), "Failed to save expense", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity(), "Expense saved successfully", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     public void loadExpenses() {
-        if (expenseList == null || expenseList.isEmpty()) {
-            Log.e("ExpenseTracker", "Expense list is null or empty");
-            return;
+        expenseList.clear();
+        SQLiteDatabase db = DatabaseInitializer.getDatabaseHelper().getReadableDatabase();
+        String[] columns = {
+                DatabaseHelper.COLUMN_ID,
+                DatabaseHelper.COLUMN_USER_ID,
+                DatabaseHelper.COLUMN_NAME,
+                DatabaseHelper.COLUMN_AMOUNT,
+                DatabaseHelper.COLUMN_CATEGORY,
+                DatabaseHelper.COLUMN_NOTES,
+                DatabaseHelper.COLUMN_DATE_TIME
+        };
+        String selection = DatabaseHelper.COLUMN_USER_ID + " = ?";
+        String[] selectionArgs = {userId};
+
+        Cursor cursor = db.query(DatabaseHelper.TABLE_EXPENSES, columns, selection, selectionArgs, null, null, null);
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NAME));
+                long amount = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_AMOUNT));
+                String category = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORY));
+                String notes = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOTES));
+                String dateTime = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DATE_TIME));
+
+                Expense expense = new Expense(userId, name, amount, dateTime, category, notes);
+                expenseList.add(expense);
+            }
+            cursor.close();
         }
 
+        expenseListContainer.removeAllViews(); // Clear existing views
         for (Expense expense : expenseList) {
-            if (expense == null) {
-                Log.e("ExpenseTracker", "Null expense object found in list");
-                continue;
-            }
-
-            String userId = expense.getUserId();
-            if (userId == null || userId.isEmpty()) {
-                Log.e("ExpenseTracker", "Expense with null or empty userId found: " + expense);
-                continue;
-            }
-
-            Log.d("ExpenseTracker", "Processing expense for userId: " + userId);
+            addExpenseToView(expense);
         }
+        updateTvTotalAmount(); // Update total amount
     }
+
 
 
     @SuppressLint("SetTextI18n")
@@ -293,7 +326,7 @@ public class ExpenseTracker extends Fragment {
                     expense.setNotes(notes);
                     expense.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
 
-                    updateExpenseInFile(expense);
+                    updateExpenseInDatabase(expense);
                     updateExpenseInView(expense);
 
                     notification.addRecord(new NotificationRecord("Edited expense: " + name, expense.getDateTime()));
@@ -315,24 +348,27 @@ public class ExpenseTracker extends Fragment {
         }
     }
 
-    private void updateExpenseInFile(Expense updatedExpense) {
-        List<Expense> updatedExpenses = new ArrayList<>();
-        for (Expense expense : expenseList) {
-            if (expense.equals(updatedExpense)) {
-                updatedExpenses.add(updatedExpense);
-            } else {
-                updatedExpenses.add(expense);
-            }
-        }
+    private void updateExpenseInDatabase(Expense updatedExpense) {
+        SQLiteDatabase db = DatabaseInitializer.getDatabaseHelper().getWritableDatabase();
+        ContentValues values = new ContentValues();
 
-        try (FileOutputStream fos = getActivity().openFileOutput("expenseData.txt", Context.MODE_PRIVATE)) {
-            for (Expense exp : updatedExpenses) {
-                fos.write((exp.toString() + "\n").getBytes());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        values.put(DatabaseHelper.COLUMN_NAME, updatedExpense.getName());
+        values.put(DatabaseHelper.COLUMN_AMOUNT, updatedExpense.getAmount());
+        values.put(DatabaseHelper.COLUMN_CATEGORY, updatedExpense.getCategory());
+        values.put(DatabaseHelper.COLUMN_NOTES, updatedExpense.getNotes());
+        values.put(DatabaseHelper.COLUMN_DATE_TIME, updatedExpense.getDateTime());
+
+        String whereClause = DatabaseHelper.COLUMN_ID + " = ?";
+        String[] whereArgs = {String.valueOf(updatedExpense.getUserId())};
+
+        int rowsUpdated = db.update(DatabaseHelper.TABLE_EXPENSES, values, whereClause, whereArgs);
+        if (rowsUpdated > 0) {
+            Toast.makeText(getActivity(), "Expense updated successfully", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity(), "Failed to update expense", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void showDeleteConfirmationDialog(Expense expense) {
         new AlertDialog.Builder(getActivity())
@@ -340,7 +376,7 @@ public class ExpenseTracker extends Fragment {
                 .setMessage("Are you sure you want to delete this expense?")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     expenseList.remove(expense);
-                    removeExpenseFromFile(expense);
+                    removeExpenseFromDatabase(expense);
 
                     removeExpenseFromView(expense);
                     updateTvTotalAmount();
@@ -364,28 +400,17 @@ public class ExpenseTracker extends Fragment {
     }
 
 
-    private void removeExpenseFromFile(Expense expense) {
-        List<Expense> updatedExpenses = new ArrayList<>();
-        try (FileInputStream fis = getActivity().openFileInput("expenseData.txt")) {
-            Scanner scanner = new Scanner(fis);
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                Expense existingExpense = Expense.fromString(line);
+    private void removeExpenseFromDatabase(Expense expense) {
+        SQLiteDatabase db = DatabaseInitializer.getDatabaseHelper().getWritableDatabase();
+        String whereClause = DatabaseHelper.COLUMN_ID + " = ?";
+        String[] whereArgs = {String.valueOf(expense.getUserId())};
 
-                // Check if existingExpense is null before invoking equals
-                if (existingExpense != null && !existingExpense.equals(expense)) {
-                    updatedExpenses.add(existingExpense);
-                }
-            }
-
-            // Overwrite the file with the updated expenses
-            try (FileOutputStream fos = getActivity().openFileOutput("expenseData.txt", Context.MODE_PRIVATE)) {
-                for (Expense exp : updatedExpenses) {
-                    fos.write((exp.toString() + "\n").getBytes());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        int rowsDeleted = db.delete(DatabaseHelper.TABLE_EXPENSES, whereClause, whereArgs);
+        if (rowsDeleted > 0) {
+            Toast.makeText(getActivity(), "Expense deleted successfully", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity(), "Failed to delete expense", Toast.LENGTH_SHORT).show();
         }
     }
+
 }

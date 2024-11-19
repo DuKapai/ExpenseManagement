@@ -9,10 +9,12 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,7 +73,7 @@ public class ExpenseTracker extends Fragment {
         View view = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
         EditText etSpendingName = view.findViewById(R.id.etSpendingName);
         EditText etSpendingAmount = view.findViewById(R.id.etSpendingAmount);
-        EditText etSpendingCategory = view.findViewById(R.id.etSpendingCategory);
+        Spinner spSpendingCategory = view.findViewById(R.id.etSpendingCategory);
         EditText etSpendingNotes = view.findViewById(R.id.etSpendingNotes);
         RadioGroup rgExpenseType = view.findViewById(R.id.rgExpenseType);
 
@@ -80,10 +82,10 @@ public class ExpenseTracker extends Fragment {
                 .setPositiveButton("Add", (dialog, which) -> {
                     String name = etSpendingName.getText().toString();
                     String amountStr = etSpendingAmount.getText().toString();
-                    String category = etSpendingCategory.getText().toString();
+                    String category = spSpendingCategory.getSelectedItem().toString();
                     String notes = etSpendingNotes.getText().toString();
 
-                    if (TextUtils.isEmpty(name) || TextUtils.isEmpty(amountStr) || TextUtils.isEmpty(category)) {
+                    if (TextUtils.isEmpty(name) || TextUtils.isEmpty(amountStr)) {
                         Toast.makeText(getActivity(), "Please fill all fields", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -230,37 +232,38 @@ public class ExpenseTracker extends Fragment {
                 .show();
     }
 
-
     private void showEditExpenseDialog(Expense expense) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         View view = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
 
-        // Initialize fields with existing values
         EditText etSpendingName = view.findViewById(R.id.etSpendingName);
         EditText etSpendingAmount = view.findViewById(R.id.etSpendingAmount);
-        EditText etSpendingCategory = view.findViewById(R.id.etSpendingCategory);
+        Spinner spSpendingCategory = view.findViewById(R.id.etSpendingCategory);
         EditText etSpendingNotes = view.findViewById(R.id.etSpendingNotes);
         RadioGroup rgExpenseType = view.findViewById(R.id.rgExpenseType);
 
         etSpendingName.setText(expense.getName());
         etSpendingAmount.setText(String.valueOf(Math.abs(expense.getAmount())));
-        etSpendingCategory.setText(expense.getCategory());
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                getActivity(), R.array.expense_categories, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spSpendingCategory.setAdapter(adapter);
+
+        int categoryPosition = adapter.getPosition(expense.getCategory());
+        spSpendingCategory.setSelection(categoryPosition);
+
         etSpendingNotes.setText(expense.getNotes());
-        if (expense.getAmount() < 0) {
-            rgExpenseType.check(R.id.rbExpense);
-        } else {
-            rgExpenseType.check(R.id.rbIncome);
-        }
+        rgExpenseType.check(expense.getAmount() < 0 ? R.id.rbExpense : R.id.rbIncome);
 
         builder.setView(view)
                 .setTitle("Edit Expense")
                 .setPositiveButton("Save", (dialog, which) -> {
                     String name = etSpendingName.getText().toString();
                     String amountStr = etSpendingAmount.getText().toString();
-                    String category = etSpendingCategory.getText().toString();
+                    String category = spSpendingCategory.getSelectedItem().toString();
                     String notes = etSpendingNotes.getText().toString();
 
-                    if (TextUtils.isEmpty(name) || TextUtils.isEmpty(amountStr) || TextUtils.isEmpty(category)) {
+                    if (TextUtils.isEmpty(name) || TextUtils.isEmpty(amountStr)) {
                         Toast.makeText(getActivity(), "Please fill all fields", Toast.LENGTH_SHORT).show();
                         return;
                     }

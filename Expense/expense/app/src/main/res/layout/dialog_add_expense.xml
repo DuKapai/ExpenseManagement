@@ -19,12 +19,12 @@
         android:hint="Expectation (VND)"
         android:inputType="number" />
 
-    <EditText
+    <Spinner
         android:id="@+id/etSpendingCategory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Category"
-        android:inputType="text" />
+        android:entries="@array/expense_categories"
+        android:spinnerMode="dropdown" />
 
     <EditText
         android:id="@+id/etSpendingNotes"

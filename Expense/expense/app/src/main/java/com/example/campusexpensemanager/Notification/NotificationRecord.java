@@ -1,5 +1,9 @@
 package com.example.campusexpensemanager.Notification;
 
+import android.content.Context;
+
+import com.example.campusexpensemanager.DatabaseInitializer;
+
 import java.util.Objects;
 
 public class NotificationRecord {
@@ -8,6 +12,23 @@ public class NotificationRecord {
     private String expenseId;
     private String dateTime;
     private String description;
+
+    private Context context;
+
+    public NotificationRecord(Context context) {
+        this.context = context;
+
+        // Initialize database
+        DatabaseInitializer.initializeDatabase(context);
+    }
+
+    public void saveNotification(String userId, String actionType, int expenseId, String description) {
+        // Example: Add a notification using the database
+        DatabaseInitializer.getDatabaseHelper()
+                .getWritableDatabase()
+                .execSQL("INSERT INTO notifications (user_id, action_type, expense_id, date_time, description) VALUES (?, ?, ?, datetime('now'), ?)",
+                        new Object[]{userId, actionType, expenseId, description});
+    }
 
     // Constructor for "Add" action type
     public NotificationRecord(String description, String dateTime) {

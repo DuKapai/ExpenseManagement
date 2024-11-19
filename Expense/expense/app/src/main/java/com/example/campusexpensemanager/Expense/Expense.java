@@ -1,5 +1,7 @@
 package com.example.campusexpensemanager.Expense;
 
+import android.util.Log;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -90,6 +92,19 @@ public class Expense {
 
     public static Expense fromString(String expenseString) {
         String[] parts = expenseString.split(";");
-        return new Expense(parts[0], parts[1], Long.parseLong(parts[2]), parts[3], parts[4], parts[5]);
+
+        // Check if the parts array has 6 elements (userId, name, amount, dateTime, category, notes)
+        if (parts.length == 6) {
+            try {
+                return new Expense(parts[0], parts[1], Long.parseLong(parts[2]), parts[3], parts[4], parts[5]);
+            } catch (NumberFormatException e) {
+                Log.e("Expense", "Invalid amount format: " + parts[2]);
+                return null;  // Handle invalid amount data
+            }
+        } else {
+            // Handle error if the format is incorrect
+            Log.e("Expense", "Malformed expense data: " + expenseString);
+            return null;  // or throw an exception depending on your use case
+        }
     }
 }

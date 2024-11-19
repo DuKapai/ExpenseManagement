@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.campusexpensemanager.DatabaseInitializer;
 import com.example.campusexpensemanager.Notification.Notification;
 import com.example.campusexpensemanager.Notification.NotificationRecord;
 import com.example.campusexpensemanager.R;
@@ -47,6 +49,18 @@ public class ExpenseTracker extends Fragment {
     private String userId;
 
     private Notification notification;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Initialize database
+        DatabaseInitializer.initializeDatabase(requireContext());
+
+        // You can use the database helper here
+        // Example: Access the database
+        DatabaseInitializer.getDatabaseHelper().getReadableDatabase();
+    }
 
     @Nullable
     @Override
@@ -118,22 +132,28 @@ public class ExpenseTracker extends Fragment {
         }
     }
 
-    private void loadExpenses() {
-        try (FileInputStream fis = getActivity().openFileInput("expenseData.txt")) {
-            Scanner scanner = new Scanner(fis);
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                Expense expense = Expense.fromString(line);
-                if (expense.getUserId().equals(userId)) {
-                    expenseList.add(expense);
-                    addExpenseToView(expense);
-                }
+    public void loadExpenses() {
+        if (expenseList == null || expenseList.isEmpty()) {
+            Log.e("ExpenseTracker", "Expense list is null or empty");
+            return;
+        }
+
+        for (Expense expense : expenseList) {
+            if (expense == null) {
+                Log.e("ExpenseTracker", "Null expense object found in list");
+                continue;
             }
-            updateTvTotalAmount();
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            String userId = expense.getUserId();
+            if (userId == null || userId.isEmpty()) {
+                Log.e("ExpenseTracker", "Expense with null or empty userId found: " + expense);
+                continue;
+            }
+
+            Log.d("ExpenseTracker", "Processing expense for userId: " + userId);
         }
     }
+
 
     @SuppressLint("SetTextI18n")
     private void updateTvTotalAmount() {
@@ -189,39 +209,37 @@ public class ExpenseTracker extends Fragment {
         expenseListContainer.addView(expenseView);
     }
 
-
-
     @SuppressLint("SetTextI18n")
     private void showExpenseDetails(Expense expense) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         View view = getLayoutInflater().inflate(R.layout.dialog_expense_details, null);
 
-        TextView tvExpenseName = view.findViewById(R.id.tvExpenseName);
-        TextView tvExpenseAmount = view.findViewById(R.id.tvExpenseAmount);
-        TextView tvExpenseTime = view.findViewById(R.id.tvExpenseTime);
-        TextView tvExpenseCategory = view.findViewById(R.id.tvExpenseCategory);
-        TextView tvExpenseNotes = view.findViewById(R.id.tvExpenseNotes);
+        TextView dlExpenseName = view.findViewById(R.id.dlExpenseName);
+        TextView dlExpenseAmount = view.findViewById(R.id.dlExpenseAmount);
+        TextView dlExpenseTime = view.findViewById(R.id.dlExpenseTime);
+        TextView dlExpenseCategory = view.findViewById(R.id.dlExpenseCategory);
+        TextView dlExpenseNotes = view.findViewById(R.id.dlExpenseNotes);
 
-        tvExpenseName.setText(expense.getName());
-        tvExpenseAmount.setText(expense.getAmount() + " VND");
+        dlExpenseName.setText(expense.getName());
+
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        String formattedAmount = numberFormat.format(Math.abs(expense.getAmount()));
+        dlExpenseAmount.setText((expense.getAmount() < 0 ? "- " : "+ ") + formattedAmount + " VND");
 
         try {
-            // Parse the datetime string
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             Date date = inputFormat.parse(expense.getDateTime());
 
-            // Format the date for display
             SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
             String formattedDate = outputFormat.format(date);
-
-            tvExpenseTime.setText(formattedDate);
+            dlExpenseTime.setText(formattedDate);
         } catch (ParseException e) {
             e.printStackTrace();
-            tvExpenseTime.setText(expense.getDateTime());
+            dlExpenseTime.setText(expense.getDateTime());
         }
 
-        tvExpenseCategory.setText(expense.getCategory());
-        tvExpenseNotes.setText(expense.getNotes());
+        dlExpenseCategory.setText(expense.getCategory());
+        dlExpenseNotes.setText(expense.getNotes());
 
         builder.setView(view)
                 .setTitle("Expense Details")
@@ -246,12 +264,9 @@ public class ExpenseTracker extends Fragment {
         etSpendingAmount.setText(String.valueOf(Math.abs(expense.getAmount())));
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getActivity(), R.array.expense_categories, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spSpendingCategory.setAdapter(adapter);
 
-        int categoryPosition = adapter.getPosition(expense.getCategory());
-        spSpendingCategory.setSelection(categoryPosition);
-
+        spSpendingCategory.setSelection(adapter.getPosition(expense.getCategory()));
         etSpendingNotes.setText(expense.getNotes());
         rgExpenseType.check(expense.getAmount() < 0 ? R.id.rbExpense : R.id.rbIncome);
 
@@ -269,7 +284,6 @@ public class ExpenseTracker extends Fragment {
                     }
 
                     long amount = Long.parseLong(amountStr);
-                    String dateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                     String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
                     amount = expenseType.equals("Expense") ? -amount : amount;
 
@@ -277,24 +291,43 @@ public class ExpenseTracker extends Fragment {
                     expense.setAmount(amount);
                     expense.setCategory(category);
                     expense.setNotes(notes);
-                    expense.setDateTime(dateTime);
+                    expense.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
 
                     updateExpenseInFile(expense);
-                    loadExpenses();
+                    updateExpenseInView(expense);
 
-                    // Log notification
-                    notification.addRecord(new NotificationRecord("Edited expense: " + name, dateTime));
+                    notification.addRecord(new NotificationRecord("Edited expense: " + name, expense.getDateTime()));
                 })
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
     }
 
+    private void updateExpenseInView(Expense expense) {
+        for (int i = 0; i < expenseListContainer.getChildCount(); i++) {
+            View expenseView = expenseListContainer.getChildAt(i);
+            TextView tvExpenseName = expenseView.findViewById(R.id.tvExpenseName);
+            if (tvExpenseName.getText().toString().equals(expense.getName())) {
+                expenseListContainer.removeViewAt(i);
+                addExpenseToView(expense);
+                break;
+            }
+        }
+    }
+
     private void updateExpenseInFile(Expense updatedExpense) {
-        List<Expense> updatedExpenses = new ArrayList<>(expenseList);
+        List<Expense> updatedExpenses = new ArrayList<>();
+        for (Expense expense : expenseList) {
+            if (expense.equals(updatedExpense)) {
+                updatedExpenses.add(updatedExpense);
+            } else {
+                updatedExpenses.add(expense);
+            }
+        }
+
         try (FileOutputStream fos = getActivity().openFileOutput("expenseData.txt", Context.MODE_PRIVATE)) {
-            for (Expense expense : updatedExpenses) {
-                fos.write((expense.toString() + "\n").getBytes());
+            for (Expense exp : updatedExpenses) {
+                fos.write((exp.toString() + "\n").getBytes());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -308,14 +341,28 @@ public class ExpenseTracker extends Fragment {
                 .setPositiveButton("Delete", (dialog, which) -> {
                     expenseList.remove(expense);
                     removeExpenseFromFile(expense);
-                    loadExpenses();
 
-                    // Log notification
-                    notification.addRecord(new NotificationRecord("Deleted expense: " + expense.getName(), new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date())));
+                    removeExpenseFromView(expense);
+                    updateTvTotalAmount();
+
+                    notification.addRecord(new NotificationRecord("Deleted expense: " + expense.getName(),
+                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date())));
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
+    private void removeExpenseFromView(Expense expense) {
+        for (int i = 0; i < expenseListContainer.getChildCount(); i++) {
+            View expenseView = expenseListContainer.getChildAt(i);
+            TextView tvExpenseName = expenseView.findViewById(R.id.tvExpenseName);
+            if (tvExpenseName.getText().toString().equals(expense.getName())) {
+                expenseListContainer.removeViewAt(i);
+                break;
+            }
+        }
+    }
+
 
     private void removeExpenseFromFile(Expense expense) {
         List<Expense> updatedExpenses = new ArrayList<>();
@@ -324,10 +371,14 @@ public class ExpenseTracker extends Fragment {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 Expense existingExpense = Expense.fromString(line);
-                if (!existingExpense.equals(expense)) {
+
+                // Check if existingExpense is null before invoking equals
+                if (existingExpense != null && !existingExpense.equals(expense)) {
                     updatedExpenses.add(existingExpense);
                 }
             }
+
+            // Overwrite the file with the updated expenses
             try (FileOutputStream fos = getActivity().openFileOutput("expenseData.txt", Context.MODE_PRIVATE)) {
                 for (Expense exp : updatedExpenses) {
                     fos.write((exp.toString() + "\n").getBytes());

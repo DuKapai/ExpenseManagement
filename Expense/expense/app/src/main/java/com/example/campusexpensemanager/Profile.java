@@ -35,42 +35,78 @@ public class Profile extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Inflate layout
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        sharedPreferences = getActivity().getSharedPreferences("userSession", getActivity().MODE_PRIVATE);
-
+        // Initialize UI elements
         tvName = view.findViewById(R.id.tvName);
         tvEmail = view.findViewById(R.id.tvEmail);
         ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
         btnLogout = view.findViewById(R.id.btnLogout);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
 
-        String userName = sharedPreferences.getString("USER_NAME", "Unknown User");
-        String userMail = sharedPreferences.getString("USER_EMAIL", "No Email");
+        // Load shared preferences
+        sharedPreferences = requireActivity().getSharedPreferences("userSession", requireActivity().MODE_PRIVATE);
 
-        tvName.setText(userName);
-        tvEmail.setText(userMail);
+        // Load user data from file
+        loadUserDataFromFile();
 
         // Logout button logic
         btnLogout.setOnClickListener(v -> {
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.clear();
+            editor.clear(); // Clear session data
             editor.apply();
 
             Intent intent = new Intent(getActivity(), LoginActivity.class);
             startActivity(intent);
-            getActivity().finish();
+            requireActivity().finish();
         });
 
-        // Edit Profile button logic
+        // Edit profile button logic
         btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
 
         return view;
     }
 
-    // Method to show the Edit Profile dialog
+    private void loadUserDataFromFile() {
+        File file = new File(requireContext().getFilesDir(), "userData.txt");
+
+        if (!file.exists()) {
+            Toast.makeText(requireContext(), "No user data found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String userEmail = sharedPreferences.getString("USER_EMAIL", null);
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // Format: id|name|email|password
+                String[] userData = line.split("\\|");
+
+                if (userData.length >= 3 && userData[2].equals(userEmail)) {
+                    // Update UI
+                    tvName.setText(userData[1]);
+                    tvEmail.setText(userData[2]);
+
+                    // Save name to SharedPreferences for consistency
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("USER_NAME", userData[1]);
+                    editor.apply();
+                    return;
+                }
+            }
+
+            Toast.makeText(requireContext(), "User data not found", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Error loading user data", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void showEditProfileDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_profile, null);
         builder.setView(dialogView);
@@ -83,7 +119,6 @@ public class Profile extends Fragment {
         builder.setTitle("Edit Profile");
         AlertDialog dialog = builder.create();
 
-        // Logic for updating the profile when the Update button is clicked
         btnUpdateProfile.setOnClickListener(v -> {
             String newName = edtNewName.getText().toString().trim();
             String oldPassword = edtOldPassword.getText().toString().trim();
@@ -95,7 +130,7 @@ public class Profile extends Fragment {
             }
 
             String userEmail = sharedPreferences.getString("USER_EMAIL", "");
-            File file = new File(getActivity().getFilesDir(), "userData.txt");
+            File file = new File(requireContext().getFilesDir(), "userData.txt");
 
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 StringBuilder updatedData = new StringBuilder();
@@ -105,6 +140,7 @@ public class Profile extends Fragment {
 
                 while ((line = br.readLine()) != null) {
                     String[] userData = line.split("\\|");
+
                     if (userData[2].equals(userEmail) && userData[3].equals(oldPassword)) {
                         userData[1] = newName.isEmpty() ? userData[1] : newName;
                         userData[3] = newPassword.isEmpty() ? userData[3] : newPassword;
@@ -114,6 +150,7 @@ public class Profile extends Fragment {
                         editor.putString("USER_NAME", userData[1]);
                         editor.apply();
 
+                        tvName.setText(userData[1]); // Update UI immediately
                         Toast.makeText(getActivity(), "Profile updated", Toast.LENGTH_SHORT).show();
                         isUpdated = true;
                     }
@@ -134,15 +171,13 @@ public class Profile extends Fragment {
                 Toast.makeText(getActivity(), "Error updating profile", Toast.LENGTH_SHORT).show();
             }
 
-            dialog.dismiss(); // Close the dialog after updating
+            dialog.dismiss();
         });
 
         dialog.show();
     }
 
-    // Method to validate the new password format
     private boolean isValidPassword(String password) {
-        // Regular expression to ensure at least one letter, one number, and one special character
         Pattern passwordPattern = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$");
         return passwordPattern.matcher(password).matches();
     }

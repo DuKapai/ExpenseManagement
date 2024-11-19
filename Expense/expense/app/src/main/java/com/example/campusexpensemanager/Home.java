@@ -23,8 +23,11 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +68,12 @@ public class Home extends Fragment {
             String line;
             List<Expense> expenses = new ArrayList<>();
             long totalSpent = 0;
-            int currentMonthExpenses = 0;
+            long currentMonthExpenses = 0;
+
+            // Get current month
+            Calendar currentDate = Calendar.getInstance();
+            int currentMonth = currentDate.get(Calendar.MONTH);
+            int currentYear = currentDate.get(Calendar.YEAR);
 
             while ((line = reader.readLine()) != null) {
                 Expense expense = Expense.fromString(line);
@@ -73,26 +81,27 @@ public class Home extends Fragment {
                     expenses.add(expense);
                     totalSpent += expense.getAmount();
 
-                    // Check if expense is in the current month
                     Calendar expenseDate = Calendar.getInstance();
-                    expenseDate.setTimeInMillis(Long.parseLong(expense.getDateTime()));
-                    Calendar currentDate = Calendar.getInstance();
-                    if (expenseDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR) &&
-                            expenseDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH)) {
-                        currentMonthExpenses++;
+                    expenseDate.setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(expense.getDateTime()));
+                    if (expenseDate.get(Calendar.YEAR) == currentYear && expenseDate.get(Calendar.MONTH) == currentMonth) {
+                        currentMonthExpenses += expense.getAmount();
                     }
                 }
             }
+
+            // Update UI
             NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
-            String formattedAmount = numberFormat.format(totalSpent);
-            tvTotalSpent.setText("Total Spent: " + formattedAmount + " VND");
-            tvCurrentMonthExpenses.setText("Expenses This Month: " + currentMonthExpenses);
+            tvTotalSpent.setText("Total Spent: " + numberFormat.format(totalSpent) + " VND");
+            tvCurrentMonthExpenses.setText("Expenses This Month: " + numberFormat.format(currentMonthExpenses) + " VND");
+
             showRecentExpenses(expenses);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+
 
     private void generateChart() {
         Map<String, Float> categoryExpenseMap = new HashMap<>();
@@ -148,18 +157,40 @@ public class Home extends Fragment {
         int count = 0;
         for (int i = expenses.size() - 1; i >= 0 && count < 20; i--) {
             Expense expense = expenses.get(i);
-            TextView expenseItem = new TextView(getContext());
+
+            // Inflate custom layout for recent expenses
+            View expenseView = LayoutInflater.from(getContext())
+                    .inflate(R.layout.item_expense, recentExpensesLayout, false);
+
+            // Bind data to views
+            TextView tvExpenseName = expenseView.findViewById(R.id.tvExpenseName);
+            TextView tvExpenseAmount = expenseView.findViewById(R.id.tvExpenseAmount);
+            TextView tvExpenseDate = expenseView.findViewById(R.id.tvExpenseTime);
+
+            tvExpenseName.setText(expense.getName());
 
             NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
-            String formattedAmount = numberFormat.format(expense.getAmount());
+            String formattedAmount = numberFormat.format(Math.abs(expense.getAmount()));
+            tvExpenseAmount.setText((expense.getAmount() < 0 ? "- " : "+ ") + formattedAmount + " VND");
+            tvExpenseAmount.setTextColor(expense.getAmount() < 0
+                    ? getResources().getColor(R.color.expenseColor)
+                    : getResources().getColor(R.color.incomeColor));
 
-            expenseItem.setText(expense.getName() + ": " + formattedAmount + " VND");
-            expenseItem.setTextSize(16);
-            expenseItem.setTextColor(getResources().getColor(R.color.text_secondary));
-            recentExpensesLayout.addView(expenseItem);
+            try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                Date date = inputFormat.parse(expense.getDateTime());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                tvExpenseDate.setText(outputFormat.format(date));
+            } catch (ParseException e) {
+                tvExpenseDate.setText(expense.getDateTime());
+            }
+
+            // Add the view to the recentExpensesLayout
+            recentExpensesLayout.addView(expenseView);
             count++;
         }
     }
+
 
     @Override
     public void onResume() {

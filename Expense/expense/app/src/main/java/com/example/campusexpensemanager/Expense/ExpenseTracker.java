@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -148,26 +149,45 @@ public class ExpenseTracker extends Fragment {
     @SuppressLint("SetTextI18n")
     private void addExpenseToView(Expense expense) {
         View expenseView = getLayoutInflater().inflate(R.layout.item_expense, expenseListContainer, false);
+
         TextView tvExpenseName = expenseView.findViewById(R.id.tvExpenseName);
         TextView tvExpenseAmount = expenseView.findViewById(R.id.tvExpenseAmount);
         TextView tvExpenseTime = expenseView.findViewById(R.id.tvExpenseTime);
         TextView tvExpenseCategory = expenseView.findViewById(R.id.tvExpenseCategory);
 
-        String formattedDate = expense.getDateTime();
-
         tvExpenseName.setText(expense.getName());
+        tvExpenseCategory.setText(expense.getCategory());
 
+        // Format amount
         NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
         String formattedAmount = numberFormat.format(Math.abs(expense.getAmount()));
         tvExpenseAmount.setText((expense.getAmount() < 0 ? "- " : "+ ") + formattedAmount + " VND");
+        tvExpenseAmount.setTextColor(expense.getAmount() < 0
+                ? getResources().getColor(R.color.expenseColor)
+                : getResources().getColor(R.color.incomeColor));
 
-        tvExpenseTime.setText(formattedDate);  // Hiển thị trực tiếp `formattedDate`
-        tvExpenseCategory.setText(expense.getCategory());
+        // Format datetime
+        try {
+            // Parse the datetime string to a Date object
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date date = inputFormat.parse(expense.getDateTime());
+
+            // Format the date for display
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
+            String formattedDate = outputFormat.format(date);
+
+            tvExpenseTime.setText(formattedDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            tvExpenseTime.setText(expense.getDateTime()); // Fallback to original string if parsing fails
+        }
 
         expenseView.setOnClickListener(v -> showExpenseDetails(expense));
 
         expenseListContainer.addView(expenseView);
     }
+
+
 
     @SuppressLint("SetTextI18n")
     private void showExpenseDetails(Expense expense) {
@@ -180,11 +200,24 @@ public class ExpenseTracker extends Fragment {
         TextView tvExpenseCategory = view.findViewById(R.id.tvExpenseCategory);
         TextView tvExpenseNotes = view.findViewById(R.id.tvExpenseNotes);
 
-        String formattedDate = expense.getDateTime();
-
         tvExpenseName.setText(expense.getName());
         tvExpenseAmount.setText(expense.getAmount() + " VND");
-        tvExpenseTime.setText(formattedDate);
+
+        try {
+            // Parse the datetime string
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date date = inputFormat.parse(expense.getDateTime());
+
+            // Format the date for display
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
+            String formattedDate = outputFormat.format(date);
+
+            tvExpenseTime.setText(formattedDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            tvExpenseTime.setText(expense.getDateTime());
+        }
+
         tvExpenseCategory.setText(expense.getCategory());
         tvExpenseNotes.setText(expense.getNotes());
 
@@ -196,6 +229,7 @@ public class ExpenseTracker extends Fragment {
                 .create()
                 .show();
     }
+
 
     private void showEditExpenseDialog(Expense expense) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

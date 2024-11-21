@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.campusexpensemanager.Data.DatabaseHelper;
 import com.example.campusexpensemanager.Verify.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
@@ -19,6 +20,7 @@ public class HomeActivity extends AppCompatActivity {
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
     BottomNavigationView bottomNavigationView;
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -27,14 +29,16 @@ public class HomeActivity extends AppCompatActivity {
         // Check login session
         SharedPreferences sharedPreferences = getSharedPreferences("userSession", MODE_PRIVATE);
         String userId = sharedPreferences.getString("USER_ID", null);
-        String userName = sharedPreferences.getString("USER_NAME", null);
-        String userMail = sharedPreferences.getString("USER_EMAIL", null);
 
-        if (userId != null && userMail != null && userName != null) {
+        if (userId != null) {
             // If user is logged in, show the home layout
             setContentView(R.layout.activity_home);
-            setupBottomNavigation();
 
+            // Initialize DatabaseHelper
+            databaseHelper = new DatabaseHelper(this);
+            databaseHelper.open();
+
+            setupBottomNavigation();
         } else {
             // If no session, redirect to LoginActivity
             Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
@@ -84,16 +88,17 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
         // Clear login session on logout (or call this method on a logout button click if needed)
         SharedPreferences sharedPreferences = getSharedPreferences("userSession", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
+        sharedPreferences.edit().clear().apply();
+
+        // Close database connection
+        databaseHelper.close();
     }
 }

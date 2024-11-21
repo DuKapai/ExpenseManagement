@@ -43,23 +43,21 @@ public class LoginActivity extends AppCompatActivity {
 
         if (emailStr.isEmpty() || passwordStr.isEmpty()) {
             Toast.makeText(this, "Please fill in both fields", Toast.LENGTH_SHORT).show();
-        } else {
-            progressDialog = ProgressDialog.show(this, "Logging in", "Please wait...", true);
-            checkLogin(emailStr, passwordStr);
+            return;
         }
-    }
 
-    private void checkLogin(String email, String password) {
+        progressDialog = ProgressDialog.show(this, "Logging in", "Please wait...", true);
+
         DatabaseHelper dbHelper = new DatabaseHelper(this);
-        boolean isValidUser = dbHelper.checkUser(email, password);
-
+        dbHelper.open();
+        boolean isValidUser = dbHelper.checkUser(emailStr, passwordStr);
         progressDialog.dismiss();
 
         if (isValidUser) {
             // Store login session
             SharedPreferences sharedPreferences = getSharedPreferences("userSession", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("USER_EMAIL", email);
+            editor.putString("USER_EMAIL", emailStr);
             editor.apply();
 
             // Navigate to HomeActivity
@@ -69,5 +67,6 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
         }
+        dbHelper.close();
     }
 }

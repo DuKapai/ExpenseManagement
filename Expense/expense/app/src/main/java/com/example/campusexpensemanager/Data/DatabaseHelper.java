@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.example.campusexpensemanager.Expense.Expense;
 import com.example.campusexpensemanager.Notification.NotificationRecord;
@@ -138,7 +139,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_USER_ID + " = ?", new String[]{userId},
                 null, null, COLUMN_DATE_TIME + " DESC");
 
-        if (cursor != null) {
+        // Check if the cursor has data
+        if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
                 @SuppressLint("Range") Expense expense = new Expense(
                         cursor.getString(cursor.getColumnIndex(COLUMN_USER_ID)),
@@ -150,9 +152,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 );
                 expenses.add(expense);
             }
+        } else {
+            // You can log or show a message if needed
+            Log.d("DatabaseHelper", "No expenses found for user: " + userId);
+        }
+
+        if (cursor != null) {
             cursor.close();
         }
-        return expenses;
+
+        return expenses; // Return an empty list if no data found
     }
 
     public int updateExpense(int expenseId, Expense expense) {

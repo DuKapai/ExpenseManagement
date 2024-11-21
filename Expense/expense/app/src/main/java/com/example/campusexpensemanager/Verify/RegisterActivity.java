@@ -9,7 +9,9 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.campusexpensemanager.Data.DatabaseHelper;
 import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.User;
 
 import java.util.regex.Pattern;
 
@@ -57,20 +59,24 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-//        UserDAO userDAO = new UserDAO(this);
-//        userDAO.open();
-//
-//        long result = userDAO.saveUserData(fullName, email, password);
-//        if (result == -1) {
-//            Toast.makeText(this, "Email already exists or registration failed", Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-//            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }
-//        userDAO.close();
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        dbHelper.open();
+        if (dbHelper.isEmailExists(email)) {
+            Toast.makeText(this, "Email already exists", Toast.LENGTH_SHORT).show();
+        } else {
+            long result = dbHelper.addUser(new User(0, fullName, email, password));
+            if (result == -1) {
+                Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        }
+        dbHelper.close();
     }
+
 
     // Method to check if the password meets the required criteria
     private boolean isValidPassword(String password) {
@@ -78,25 +84,4 @@ public class RegisterActivity extends AppCompatActivity {
         Pattern passwordPattern = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$");
         return passwordPattern.matcher(password).matches();
     }
-    // Method to save user data to the database using UserDAO
-//    private void saveUserData(String fullName, String email, String password) {
-//        // Using UserDAO to add user to the database
-//        UserDAO userDAO = new UserDAO(this);
-//        userDAO.open();
-//
-//        long result = userDAO.addUser(fullName, email, password);
-//
-//        if (result != -1) {
-//            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-//
-//            // Move to LoginActivity upon successful registration
-//            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-//            startActivity(intent);
-//            finish(); // Close the registration screen
-//        } else {
-//            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
-//        }
-//
-//        userDAO.close();
-//    }
 }

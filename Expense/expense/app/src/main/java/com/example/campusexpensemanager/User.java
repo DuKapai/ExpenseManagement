@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Verify;
+package com.example.campusexpensemanager;
 
 public class User {
 

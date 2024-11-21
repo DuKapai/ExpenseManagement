@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.campusexpensemanager.Expense.Expense;
 import com.example.campusexpensemanager.Notification.NotificationRecord;
+import com.example.campusexpensemanager.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_NOTIFICATIONS = "notifications";
     public static final String TABLE_USERS = "users";
 
-    // Column names for expenses
+    // Column names
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_USER_ID = "user_id";
     public static final String COLUMN_NAME = "name";
@@ -32,13 +33,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_CATEGORY = "category";
     public static final String COLUMN_NOTES = "notes";
     public static final String COLUMN_DATE_TIME = "date_time";
-
-    // Column names for notifications
     public static final String COLUMN_ACTION_TYPE = "action_type";
     public static final String COLUMN_EXPENSE_ID = "expense_id";
     public static final String COLUMN_DESCRIPTION = "description";
-
-    // Column names for users
     public static final String COLUMN_USER_NAME = "username";
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
@@ -97,19 +94,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // User-related methods
-    public long addUser(String username, String email, String password) {
+    public long addUser(User user) {
         ContentValues values = new ContentValues();
-        values.put(COLUMN_USER_NAME, username);
-        values.put(COLUMN_EMAIL, email);
-        values.put(COLUMN_PASSWORD, password);
-
+        values.put(COLUMN_USER_NAME, user.getFullName());
+        values.put(COLUMN_EMAIL, user.getEmail());
+        values.put(COLUMN_PASSWORD, user.getPassword());
         return db.insert(TABLE_USERS, null, values);
     }
 
     public boolean isEmailExists(String email) {
-        Cursor cursor = db.query(TABLE_USERS, null,
-                COLUMN_EMAIL + " = ?", new String[]{email},
-                null, null, null);
+        Cursor cursor = db.query(TABLE_USERS, null, COLUMN_EMAIL + " = ?", new String[]{email}, null, null, null);
         boolean exists = cursor.getCount() > 0;
         cursor.close();
         return exists;
@@ -121,22 +115,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_EMAIL + "=? AND " + COLUMN_PASSWORD + "=?",
                 new String[]{email, password},
                 null, null, null);
-
         boolean exists = (cursor.getCount() > 0);
         cursor.close();
         return exists;
     }
 
     // Expense-related methods
-    public long addExpense(String userId, String name, int amount, String category, String notes, String dateTime) {
+    public long addExpense(Expense expense) {
         ContentValues values = new ContentValues();
-        values.put(COLUMN_USER_ID, userId);
-        values.put(COLUMN_NAME, name);
-        values.put(COLUMN_AMOUNT, amount);
-        values.put(COLUMN_CATEGORY, category);
-        values.put(COLUMN_NOTES, notes);
-        values.put(COLUMN_DATE_TIME, dateTime);
-
+        values.put(COLUMN_USER_ID, expense.getUserId());
+        values.put(COLUMN_NAME, expense.getName());
+        values.put(COLUMN_AMOUNT, expense.getAmount());
+        values.put(COLUMN_CATEGORY, expense.getCategory());
+        values.put(COLUMN_NOTES, expense.getNotes());
+        values.put(COLUMN_DATE_TIME, expense.getDateTime());
         return db.insert(TABLE_EXPENSES, null, values);
     }
 
@@ -151,10 +143,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 @SuppressLint("Range") Expense expense = new Expense(
                         cursor.getString(cursor.getColumnIndex(COLUMN_USER_ID)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
-                        cursor.getInt(cursor.getColumnIndex(COLUMN_AMOUNT)),
+                        cursor.getLong(cursor.getColumnIndex(COLUMN_AMOUNT)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_DATE_TIME)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_CATEGORY)),
-                        cursor.getString(cursor.getColumnIndex(COLUMN_NOTES)),
-                        cursor.getString(cursor.getColumnIndex(COLUMN_DATE_TIME))
+                        cursor.getString(cursor.getColumnIndex(COLUMN_NOTES))
                 );
                 expenses.add(expense);
             }
@@ -163,14 +155,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return expenses;
     }
 
-    public int updateExpense(int expenseId, String name, int amount, String category, String notes, String dateTime) {
+    public int updateExpense(int expenseId, Expense expense) {
         ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME, name);
-        values.put(COLUMN_AMOUNT, amount);
-        values.put(COLUMN_CATEGORY, category);
-        values.put(COLUMN_NOTES, notes);
-        values.put(COLUMN_DATE_TIME, dateTime);
-
+        values.put(COLUMN_NAME, expense.getName());
+        values.put(COLUMN_AMOUNT, expense.getAmount());
+        values.put(COLUMN_CATEGORY, expense.getCategory());
+        values.put(COLUMN_NOTES, expense.getNotes());
+        values.put(COLUMN_DATE_TIME, expense.getDateTime());
         return db.update(TABLE_EXPENSES, values,
                 COLUMN_ID + " = ?", new String[]{String.valueOf(expenseId)});
     }
@@ -180,14 +171,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Notification-related methods
-    public long addNotification(String userId, String actionType, int expenseId, String dateTime, String description) {
+    public long addNotification(NotificationRecord notification) {
         ContentValues values = new ContentValues();
-        values.put(COLUMN_USER_ID, userId);
-        values.put(COLUMN_ACTION_TYPE, actionType);
-        values.put(COLUMN_EXPENSE_ID, expenseId);
-        values.put(COLUMN_DATE_TIME, dateTime);
-        values.put(COLUMN_DESCRIPTION, description);
-
+        values.put(COLUMN_USER_ID, notification.getUserId());
+        values.put(COLUMN_ACTION_TYPE, notification.getActionType());
+        values.put(COLUMN_EXPENSE_ID, notification.getExpenseId());
+        values.put(COLUMN_DATE_TIME, notification.getDateTime());
+        values.put(COLUMN_DESCRIPTION, notification.getDescription());
         return db.insert(TABLE_NOTIFICATIONS, null, values);
     }
 

@@ -18,8 +18,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     public void RegisterPage(View view){
         Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);

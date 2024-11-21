@@ -8,13 +8,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.campusexpensemanager.Data.UserDAO;
+
 import com.example.campusexpensemanager.R;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -61,19 +57,19 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        UserDAO userDAO = new UserDAO(this);
-        userDAO.open();
-
-        long result = userDAO.saveUserData(fullName, email, password);
-        if (result == -1) {
-            Toast.makeText(this, "Email already exists or registration failed", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-        }
-        userDAO.close();
+//        UserDAO userDAO = new UserDAO(this);
+//        userDAO.open();
+//
+//        long result = userDAO.saveUserData(fullName, email, password);
+//        if (result == -1) {
+//            Toast.makeText(this, "Email already exists or registration failed", Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+//            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+//            startActivity(intent);
+//            finish();
+//        }
+//        userDAO.close();
     }
 
     // Method to check if the password meets the required criteria
@@ -83,24 +79,24 @@ public class RegisterActivity extends AppCompatActivity {
         return passwordPattern.matcher(password).matches();
     }
     // Method to save user data to the database using UserDAO
-    private void saveUserData(String fullName, String email, String password) {
-        // Using UserDAO to add user to the database
-        UserDAO userDAO = new UserDAO(this);
-        userDAO.open();
-
-        long result = userDAO.addUser(fullName, email, password);
-
-        if (result != -1) {
-            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-
-            // Move to LoginActivity upon successful registration
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish(); // Close the registration screen
-        } else {
-            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
-        }
-
-        userDAO.close();
-    }
+//    private void saveUserData(String fullName, String email, String password) {
+//        // Using UserDAO to add user to the database
+//        UserDAO userDAO = new UserDAO(this);
+//        userDAO.open();
+//
+//        long result = userDAO.addUser(fullName, email, password);
+//
+//        if (result != -1) {
+//            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+//
+//            // Move to LoginActivity upon successful registration
+//            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+//            startActivity(intent);
+//            finish(); // Close the registration screen
+//        } else {
+//            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        userDAO.close();
+//    }
 }

@@ -11,11 +11,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.campusexpensemanager.Expense.ExpenseTracker;
 import com.example.campusexpensemanager.Verify.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements ExpenseTracker.ExpenseUpdateListener {
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
     BottomNavigationView bottomNavigationView;
@@ -94,5 +95,15 @@ public class HomeActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
+    }
+
+    @Override
+    public void onExpenseUpdated() {
+        Home homeFragment = (Home) getSupportFragmentManager().findFragmentByTag("f" + 0);
+
+        if (homeFragment != null) {
+            homeFragment.loadExpenseData();
+            homeFragment.generateChart();
+        }
     }
 }

@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.campusexpensemanager.Expense.Expense;
+import com.example.campusexpensemanager.Expense.ExpenseTracker;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class Home extends Fragment {
+public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListener {
 
     private TextView tvTotalSpent, tvCurrentMonthExpenses;
     private LinearLayout recentExpensesLayout;
@@ -45,6 +46,7 @@ public class Home extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        String fragment = getArguments().getString("fragmentTag");
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         tvTotalSpent = view.findViewById(R.id.tvTotalSpent);
@@ -62,7 +64,7 @@ public class Home extends Fragment {
     }
 
     @SuppressLint("SetTextI18n")
-    private void loadExpenseData() {
+    void loadExpenseData() {
 
         try (FileInputStream fis = requireActivity().openFileInput("expenseData.txt");
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
@@ -100,7 +102,7 @@ public class Home extends Fragment {
         }
     }
 
-    private void generateChart() {
+    void generateChart() {
         Map<String, Float> categoryExpenseMap = new HashMap<>();
         try (FileInputStream fis = getActivity().openFileInput("expenseData.txt");
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
@@ -158,6 +160,12 @@ public class Home extends Fragment {
             count++;
         }
 
+    }
+
+    @Override
+    public void onExpenseUpdated() {
+        loadExpenseData();
+        generateChart();
     }
 
     @Override

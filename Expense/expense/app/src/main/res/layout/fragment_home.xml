@@ -49,11 +49,11 @@
             android:elevation="8dp"
             android:layout_marginBottom="16dp">
 
-            <com.github.mikephil.charting.charts.BarChart
-                android:id="@+id/barChart"
-                android:layout_width="match_parent"
-                android:layout_height="500dp"
-                android:background="#F8EDDE" />
         </LinearLayout>
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChart"
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+            android:background="#F8EDDE" />
     </LinearLayout>
 </ScrollView>

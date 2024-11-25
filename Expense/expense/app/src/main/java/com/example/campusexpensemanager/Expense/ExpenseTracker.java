@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -101,6 +102,8 @@ public class ExpenseTracker extends Fragment {
         EditText etSpendingAmount = view.findViewById(R.id.etSpendingAmount);
         EditText etSpendingCategory = view.findViewById(R.id.etSpendingCategory);
         EditText etSpendingNotes = view.findViewById(R.id.etSpendingNotes);
+        RadioGroup rgExpenseType = view.findViewById(R.id.rgExpenseType);
+
 
         builder.setView(view)
                 .setTitle("Add Expense")
@@ -116,9 +119,11 @@ public class ExpenseTracker extends Fragment {
                     }
 
                     long amount = Long.parseLong(amountStr);
-                    String time = String.valueOf(System.currentTimeMillis()); // Current time in milliseconds
+                    String dateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                    String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
+                    amount = expenseType.equals("Expense") ? -amount : amount;
 
-                    Expense expense = new Expense(userId, name, amount, time, category, notes);
+                    Expense expense = new Expense(userId, name, amount, dateTime, category, notes);
                     expenseList.add(expense);
                     saveExpense(expense);
                     updateTvTotalAmount();
@@ -239,11 +244,12 @@ public class ExpenseTracker extends Fragment {
         EditText etSpendingAmount = view.findViewById(R.id.etSpendingAmount);
         EditText etSpendingCategory = view.findViewById(R.id.etSpendingCategory);
         EditText etSpendingNotes = view.findViewById(R.id.etSpendingNotes);
-
-        etSpendingName.setText(expense.getName());
-        etSpendingAmount.setText(String.valueOf(expense.getAmount()));
-        etSpendingCategory.setText(expense.getCategory());
-        etSpendingNotes.setText(expense.getNotes());
+        RadioGroup rgExpenseType = view.findViewById(R.id.rgExpenseType);
+        if (expense.getAmount() < 0) {
+            rgExpenseType.check(R.id.rbExpense);
+        } else {
+            rgExpenseType.check(R.id.rbIncome);
+        }
 
         builder.setView(view)
                 .setTitle("Edit Expense")

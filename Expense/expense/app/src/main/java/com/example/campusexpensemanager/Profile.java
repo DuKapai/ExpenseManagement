@@ -7,8 +7,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,7 +24,8 @@ public class Profile extends Fragment {
     private ImageView ivProfilePicture;
     private Button btnLogout;
     private SharedPreferences sharedPreferences;
-
+    private EditText etSpendingLimit;
+    private Button btnSetLimit;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -57,6 +60,29 @@ public class Profile extends Fragment {
             Intent intent = new Intent(getActivity(), LoginActivity.class);
             startActivity(intent);
             getActivity().finish();
+        });
+
+        etSpendingLimit = view.findViewById(R.id.etSpendingLimit);
+        btnSetLimit = view.findViewById(R.id.btnSetLimit);
+
+        // Load stored limit
+        long spendingLimit = sharedPreferences.getLong("SPENDING_LIMIT", 0);
+        if (spendingLimit > 0) {
+            etSpendingLimit.setText(String.valueOf(spendingLimit));
+        }
+
+        // Set button click listener
+        btnSetLimit.setOnClickListener(v -> {
+            String limitStr = etSpendingLimit.getText().toString();
+            if (!limitStr.isEmpty()) {
+                long limit = Long.parseLong(limitStr);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putLong("SPENDING_LIMIT", limit);
+                editor.apply();
+                Toast.makeText(getActivity(), "Spending limit set to " + limit + " VND", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), "Please enter a valid limit", Toast.LENGTH_SHORT).show();
+            }
         });
 
         return view;

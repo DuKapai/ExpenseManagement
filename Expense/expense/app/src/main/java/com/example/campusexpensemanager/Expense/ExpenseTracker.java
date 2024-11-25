@@ -182,6 +182,21 @@ public class ExpenseTracker extends Fragment {
         String formattedAmount = numberFormat.format(tvTotalAmount);
 
         tvTvTotalAmount.setText(formattedAmount + " VND");
+
+        // Check against spending limit
+        long spendingLimit = sharedPreferences.getLong("SPENDING_LIMIT", 0);
+        if (spendingLimit > 0 && tvTotalAmount < 0 && Math.abs(tvTotalAmount) > spendingLimit) {
+            showLimitExceededWarning();
+        }
+    }
+
+    private void showLimitExceededWarning() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Spending Limit Exceeded")
+                .setMessage("You have exceeded your spending limit!")
+                .setPositiveButton("OK", null)
+                .create()
+                .show();
     }
 
     @SuppressLint("SetTextI18n")
@@ -328,8 +343,6 @@ public class ExpenseTracker extends Fragment {
                 .show();
     }
 
-
-
     private void showDeleteConfirmationDialog(Expense expense) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Delete Expense")
@@ -380,36 +393,6 @@ public class ExpenseTracker extends Fragment {
             e.printStackTrace();
         }
     }
-
-    private void updateExpenseInFile(Expense expense) {
-        deleteExpenseFromFile(expense); // Remove the old entry
-        saveExpense(expense); // Add the updated entry
-    }
-
-    private void updateExpenseView(Expense expense) {
-        for (int i = 0; i < expenseListContainer.getChildCount(); i++) {
-            View view = expenseListContainer.getChildAt(i);
-            TextView tvExpenseName = view.findViewById(R.id.tvExpenseName);
-            TextView tvExpenseAmount = view.findViewById(R.id.tvExpenseAmount);
-            TextView tvExpenseCategory = view.findViewById(R.id.tvExpenseCategory);
-            TextView tvExpenseTime = view.findViewById(R.id.tvExpenseTime);
-
-            long timeInMillis = Long.parseLong(expense.getDateTime());
-            Date date = new Date(timeInMillis);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
-            String formattedDate = dateFormat.format(date);
-
-            if (tvExpenseTime.getText().toString().equals(formattedDate)) {
-                tvExpenseName.setText(expense.getName());
-                NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
-                String formattedAmount = numberFormat.format(expense.getAmount());
-                tvExpenseAmount.setText(formattedAmount + " VND");
-                tvExpenseCategory.setText(expense.getCategory());
-                break;
-            }
-        }
-    }
-
 
     private void updateExpenseListView() {
         expenseListContainer.removeAllViews();

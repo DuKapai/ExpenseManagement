@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Verify;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.campusexpensemanager.R;
 
 import java.io.BufferedWriter;
 import java.io.File;

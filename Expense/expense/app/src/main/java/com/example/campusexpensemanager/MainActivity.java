@@ -3,9 +3,11 @@ package com.example.campusexpensemanager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+
+import com.example.campusexpensemanager.Verify.LoginActivity;
+import com.example.campusexpensemanager.Verify.RegisterActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,8 +17,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
     }
-
-
 
     public void RegisterPage(View view){
         Intent intent = new Intent(this, RegisterActivity.class);

@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Expense;
 
 import java.util.Objects;
 

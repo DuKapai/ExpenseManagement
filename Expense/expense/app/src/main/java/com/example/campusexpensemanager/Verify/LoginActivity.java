@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Verify;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -10,6 +10,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.campusexpensemanager.HomeActivity;
+import com.example.campusexpensemanager.R;
 
 import java.io.BufferedReader;
 import java.io.File;

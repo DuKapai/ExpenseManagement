@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.campusexpensemanager.Verify.LoginActivity;
+
 public class Profile extends Fragment {
 
     private TextView tvName, tvEmail;

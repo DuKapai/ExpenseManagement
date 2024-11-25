@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F5F5F5"
+        tools:context=".MainActivity">
+
+        <!-- Title and Description -->
+        <TextView
+            android:id="@+id/tvBankTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Student E-Bank"
+            android:textSize="24sp"
+            android:textColor="@android:color/black"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="32dp" />
+
+        <TextView
+            android:id="@+id/tvInstruction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hoàn thành mẫu thông tin để tiếp tục chuyển khoản"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintTop_toBottomOf="@id/tvBankTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Source Account Information -->
+        <TextView
+            android:id="@+id/tvSourceInfoTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thông tin nguồn tiền"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintTop_toBottomOf="@id/tvInstruction"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="24dp" />
+
+        <TextView
+            android:id="@+id/tvAccountNumberLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tài khoản nguồn"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvSourceInfoTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvAccountNumberValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="97852465422334"
+            android:textSize="16sp"
+            android:textColor="@android:color/holo_orange_dark"
+            app:layout_constraintTop_toBottomOf="@id/tvAccountNumberLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp" />
+
+        <TextView
+            android:id="@+id/tvBalanceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số dư trong tài khoản"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvAccountNumberValue"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvBalanceValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="125,520,000 VND"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvBalanceLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Beneficiary Information -->
+        <TextView
+            android:id="@+id/tvBeneficiaryInfoTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thông tin thụ hưởng"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintTop_toBottomOf="@id/tvBalanceValue"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etBeneficiaryAccount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Nhập số tài khoản thụ hưởng"
+            android:inputType="number"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tvBeneficiaryInfoTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/etBeneficiaryName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Nhập tên người thụ hưởng"
+            android:inputType="text"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etBeneficiaryAccount"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/etAmount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Nhập số tiền"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etBeneficiaryName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/etDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Nhập nội dung"
+            android:inputType="textMultiLine"
+            android:minLines="3"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/etAmount"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/etDescription"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="32dp"
+            android:weightSum="3">
+
+            <TextView
+                android:id="@+id/tvCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="QUAY LẠI"
+                android:textSize="16sp"
+                android:textColor="@android:color/holo_orange_dark"
+                android:gravity="center"
+                android:padding="16dp" />
+
+            <TextView
+                android:id="@+id/tvSaveBeneficiary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="LƯU NGƯỜI THỤ HƯỞNG"
+                android:textSize="16sp"
+                android:textColor="@android:color/holo_orange_dark"
+                android:gravity="center"
+                android:padding="16dp" />
+
+            <Button
+                android:id="@+id/btnConfirmTransfer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@android:color/holo_orange_dark"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Xác nhận"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

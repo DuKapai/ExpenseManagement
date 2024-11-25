@@ -1,20 +1,25 @@
 package com.example.campusexpensemanager.Expense;
 
+import android.util.Log;
+
 import java.util.Objects;
+import java.util.UUID;
 
 public class Expense {
+    private String id;
     private String userId;
     private String name;
     private long amount;
-    private String time;
+    private String dateTime;
     private String category;
     private String notes;
 
-    public Expense(String userId, String name, long amount, String time, String category, String notes) {
+    public Expense(String userId, String name, long amount, String dateTime, String category, String notes) {
+        this.id = UUID.randomUUID().toString();
         this.userId = userId;
         this.name = name;
         this.amount = amount;
-        this.time = time;
+        this.dateTime = dateTime;
         this.category = category;
         this.notes = notes;
     }
@@ -43,12 +48,12 @@ public class Expense {
         this.amount = amount;
     }
 
-    public String getTime() {
-        return time;
+    public String getDateTime() {
+        return dateTime;
     }
 
-    public void setTime(String time) {
-        this.time = time;
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
     }
 
     public String getCategory() {
@@ -69,7 +74,7 @@ public class Expense {
 
     @Override
     public String toString() {
-        return userId + ";" + name + ";" + amount + ";" + time + ";" + category + ";" + notes;
+        return userId + ";" + name + ";" + amount + ";" + dateTime + ";" + category + ";" + notes;
     }
 
     @Override
@@ -77,18 +82,26 @@ public class Expense {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Expense expense = (Expense) obj;
-        return userId.equals(expense.userId) &&
-                time.equals(expense.time) &&
-                name.equals(expense.name);
+        return id.equals(expense.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, name, time);
+        return Objects.hash(id);
     }
 
     public static Expense fromString(String expenseString) {
-        String[] parts = expenseString.split(";");
-        return new Expense(parts[0], parts[1], Long.parseLong(parts[2]), parts[3], parts[4], parts[5]);
+        try {
+            String[] parts = expenseString.split(";");
+            if (parts.length != 6) { // Adjusted for 6 parts
+                Log.e("Expense", "Invalid expense string format: " + expenseString);
+                return null;
+            }
+            // Using parts[3] directly for dateTime as String
+            return new Expense(parts[0], parts[1], Long.parseLong(parts[2]), parts[3], parts[4], parts[5]);
+        } catch (NumberFormatException e) {
+            Log.e("Expense", "Error parsing expense string: " + expenseString, e);
+            return null;
+        }
     }
 }

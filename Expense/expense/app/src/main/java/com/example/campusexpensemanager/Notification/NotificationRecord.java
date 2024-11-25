@@ -1,42 +1,17 @@
 package com.example.campusexpensemanager.Notification;
-
-import android.content.Context;
-
-import com.example.campusexpensemanager.Data.DatabaseInitializer;
-
 import java.util.Objects;
-
 public class NotificationRecord {
     private String userId;
     private String actionType;  // e.g., "Add", "Delete"
     private String expenseId;
     private String dateTime;
     private String description;
-
-    private Context context;
-
-    public NotificationRecord(Context context) {
-        this.context = context;
-
-        // Initialize database
-        DatabaseInitializer.initializeDatabase(context);
-    }
-
-    public void saveNotification(String userId, String actionType, int expenseId, String description) {
-        // Example: Add a notification using the database
-        DatabaseInitializer.getDatabaseHelper()
-                .getWritableDatabase()
-                .execSQL("INSERT INTO notifications (user_id, action_type, expense_id, date_time, description) VALUES (?, ?, ?, datetime('now'), ?)",
-                        new Object[]{userId, actionType, expenseId, description});
-    }
-
     // Constructor for "Add" action type
     public NotificationRecord(String description, String dateTime) {
         this.actionType = "Add";
         this.dateTime = dateTime;
         this.description = description;
     }
-
     // Constructor for "Delete" action type
     public NotificationRecord(String description, String dateTime, boolean isDelete) {
         if (isDelete) {
@@ -47,7 +22,6 @@ public class NotificationRecord {
         this.dateTime = dateTime;
         this.description = description;
     }
-
     // Full constructor for cases where all information is available
     public NotificationRecord(String userId, String actionType, String expenseId, String dateTime, String description) {
         this.userId = userId;
@@ -56,34 +30,27 @@ public class NotificationRecord {
         this.dateTime = dateTime;
         this.description = description;
     }
-
     // Getters
     public String getUserId() {
         return userId;
     }
-
     public String getActionType() {
         return actionType;
     }
-
     public String getExpenseId() {
         return expenseId;
     }
-
     public String getDateTime() {
         return dateTime;
     }
-
     public String getDescription() {
         return description;
     }
-
     // Convert object to a string for storage
     @Override
     public String toString() {
         return userId + ";" + actionType + ";" + expenseId + ";" + dateTime + ";" + description;
     }
-
     // Convert stored string data back to an object
     public static NotificationRecord fromString(String notificationString) {
         String[] parts = notificationString.split(";");
@@ -94,7 +61,6 @@ public class NotificationRecord {
         String description = parts.length > 4 ? parts[4] : "";
         return new NotificationRecord(userId, actionType, expenseId, dateTime, description);
     }
-
     // Override equals and hashCode for comparison
     @Override
     public boolean equals(Object obj) {
@@ -106,7 +72,6 @@ public class NotificationRecord {
                 Objects.equals(expenseId, that.expenseId) &&
                 Objects.equals(dateTime, that.dateTime);
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(userId, actionType, expenseId, dateTime);

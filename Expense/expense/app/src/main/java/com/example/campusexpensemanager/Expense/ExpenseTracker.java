@@ -144,7 +144,9 @@ public class ExpenseTracker extends Fragment {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 Expense expense = Expense.fromString(line);
-                if (expense.getUserId().equals(userId)) {
+
+                // Add null check here
+                if (expense != null && expense.getUserId().equals(userId)) {
                     expenseList.add(expense);
                     addExpenseToView(expense);
                 }
@@ -175,7 +177,7 @@ public class ExpenseTracker extends Fragment {
         TextView tvExpenseTime = expenseView.findViewById(R.id.tvExpenseTime);
         TextView tvExpenseCategory = expenseView.findViewById(R.id.tvExpenseCategory);
 
-        long timeInMillis = Long.parseLong(expense.getTime());
+        long timeInMillis = Long.parseLong(expense.getDateTime());
         Date date = new Date(timeInMillis);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
         String formattedDate = dateFormat.format(date);
@@ -194,11 +196,6 @@ public class ExpenseTracker extends Fragment {
         expenseListContainer.addView(expenseView);
     }
 
-
-
-
-
-
     private void showExpenseDetails(Expense expense) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         View view = getLayoutInflater().inflate(R.layout.dialog_expense_details, null);
@@ -210,7 +207,7 @@ public class ExpenseTracker extends Fragment {
         TextView tvExpenseNotes = view.findViewById(R.id.tvExpenseNotes);
 
         // Hiển thị thông tin chi tiết
-        long timeInMillis = Long.parseLong(expense.getTime());
+        long timeInMillis = Long.parseLong(expense.getDateTime());
         Date date = new Date(timeInMillis);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
         String formattedDate = dateFormat.format(date);
@@ -290,10 +287,6 @@ public class ExpenseTracker extends Fragment {
                 .show();
     }
 
-
-
-
-
     private void deleteExpenseFromFile(Expense expenseToDelete) {
         try {
             FileInputStream fis = getActivity().openFileInput("expenseData.txt");
@@ -325,11 +318,6 @@ public class ExpenseTracker extends Fragment {
         }
     }
 
-
-
-
-
-
     private void updateExpenseInFile(Expense expense) {
         try {
             FileInputStream fis = getActivity().openFileInput("expenseData.txt");
@@ -356,9 +344,6 @@ public class ExpenseTracker extends Fragment {
         }
     }
 
-
-
-
     private void updateExpenseView(Expense expense) {
         for (int i = 0; i < expenseListContainer.getChildCount(); i++) {
             View view = expenseListContainer.getChildAt(i);
@@ -367,7 +352,7 @@ public class ExpenseTracker extends Fragment {
             TextView tvExpenseCategory = view.findViewById(R.id.tvExpenseCategory);
             TextView tvExpenseTime = view.findViewById(R.id.tvExpenseTime);
 
-            long timeInMillis = Long.parseLong(expense.getTime());
+            long timeInMillis = Long.parseLong(expense.getDateTime());
             Date date = new Date(timeInMillis);
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
             String formattedDate = dateFormat.format(date);

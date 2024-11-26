@@ -1,6 +1,8 @@
-package com.example.campusexpensemanager.Entity.Notification;
+package com.example.campusexpensemanager.Models;
 
 import android.content.Context;
+
+import com.example.campusexpensemanager.Entity.Notification.NotificationRecord;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

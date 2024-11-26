@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -13,8 +13,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.campusexpensemanager.Expense.Expense;
-import com.example.campusexpensemanager.Expense.ExpenseTracker;
+import com.example.campusexpensemanager.Entity.Expense;
+import com.example.campusexpensemanager.R;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -64,7 +64,7 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
     }
 
     @SuppressLint("SetTextI18n")
-    void loadExpenseData() {
+    public void loadExpenseData() {
 
         try (FileInputStream fis = requireActivity().openFileInput("expenseData.txt");
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
@@ -102,7 +102,7 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
         }
     }
 
-    void generateChart() {
+    public void generateChart() {
         Map<String, Float> categoryExpenseMap = new HashMap<>();
         try (FileInputStream fis = getActivity().openFileInput("expenseData.txt");
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {

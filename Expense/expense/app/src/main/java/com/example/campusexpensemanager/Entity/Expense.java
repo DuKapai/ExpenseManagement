@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Expense;
+package com.example.campusexpensemanager.Entity;
 
 import android.util.Log;
 

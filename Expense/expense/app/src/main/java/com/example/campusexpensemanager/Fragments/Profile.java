@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.campusexpensemanager.Verify.LoginActivity;
+import com.example.campusexpensemanager.R;
 
 public class Profile extends Fragment {
 

@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Models;
+package com.example.campusexpensemanager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -6,9 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.example.campusexpensemanager.R;
-import com.example.campusexpensemanager.Models.Verify.LoginActivity;
-import com.example.campusexpensemanager.Models.Verify.RegisterActivity;
+import com.example.campusexpensemanager.Verify.LoginActivity;
+import com.example.campusexpensemanager.Verify.RegisterActivity;
 
 public class MainActivity extends AppCompatActivity {
 

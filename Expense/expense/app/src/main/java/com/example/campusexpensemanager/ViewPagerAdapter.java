@@ -7,8 +7,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.example.campusexpensemanager.Expense.ExpenseTracker;
-import com.example.campusexpensemanager.Notification.NotificationFragment;
+import com.example.campusexpensemanager.Fragments.ExpenseTracker;
+import com.example.campusexpensemanager.Fragments.Home;
+import com.example.campusexpensemanager.Fragments.NotificationFragment;
+import com.example.campusexpensemanager.Fragments.Profile;
 
 public class ViewPagerAdapter extends FragmentStateAdapter {
 

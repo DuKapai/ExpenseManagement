@@ -1,27 +1,35 @@
 package com.example.campusexpensemanager.Entity;
 
 import android.util.Log;
-
 import java.util.Objects;
-import java.util.UUID;
 
 public class Expense {
-    private String id;
+    private int id;
     private String email;
     private String name;
-    private long amount;
+    private double amount;
     private String dateTime;
-    private String category;
-    private String notes;
+    private String description;
+    private String type;
 
-    public Expense(String userId, String name, long amount, String dateTime, String category, String notes) {
-        this.id = UUID.randomUUID().toString();
-        this.email = userId;
-        this.name = name;
+    // Constructor with updated properties
+    public Expense(int id, double amount, String email, String name, String dateTime, String description, String type) {
+        this.id = id;
         this.amount = amount;
+        this.email = email;
+        this.name = name;
         this.dateTime = dateTime;
-        this.category = category;
-        this.notes = notes;
+        this.description = description;
+        this.type = type;
+    }
+
+    // Getters and setters for all fields
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getEmail() {
@@ -40,11 +48,11 @@ public class Expense {
         this.name = name;
     }
 
-    public long getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(long amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
@@ -56,38 +64,25 @@ public class Expense {
         this.dateTime = dateTime;
     }
 
-    public String getCategory() {
-        return category;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public String getNotes() {
-        return notes;
+    public String getType() {
+        return type;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override
     public String toString() {
-        return email + ";" + name + ";" + amount + ";" + dateTime + ";" + category + ";" + notes;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Expense expense = (Expense) obj;
-        return id.equals(expense.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+        return email + ";" + name + ";" + amount + ";" + dateTime + ";" + ";" + description + ";" + type;
     }
 
     public static Expense fromString(String expenseString) {
@@ -98,10 +93,11 @@ public class Expense {
                 return null;
             }
             // Using parts[3] directly for dateTime as String
-            return new Expense(parts[0], parts[1], Long.parseLong(parts[2]), parts[3], parts[4], parts[5]);
+            //return new Expense(parts[0], parts[1], Long.parseLong(parts[2]), parts[3], parts[4], parts[5]);
         } catch (NumberFormatException e) {
             Log.e("Expense", "Error parsing expense string: " + expenseString, e);
             return null;
         }
+        return null;
     }
 }

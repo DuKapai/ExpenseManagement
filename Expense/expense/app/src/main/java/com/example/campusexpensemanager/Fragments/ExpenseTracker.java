@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Expense;
+package com.example.campusexpensemanager.Fragments;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -46,6 +46,7 @@ public class ExpenseTracker extends Fragment {
     private LinearLayout expenseListContainer;
     private List<Expense> expenseList;
     private SharedPreferences sharedPreferences;
+    private int id;
     private String email;
     private ExpenseUpdateListener expenseUpdateListener;
     private Notification notification;
@@ -124,12 +125,12 @@ public class ExpenseTracker extends Fragment {
                         return;
                     }
 
-                    long amount = Long.parseLong(amountStr);
+                    double amount = Double.parseDouble(amountStr);
                     String dateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                     String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
                     amount = expenseType.equals("Expense") ? -amount : amount;
 
-                    Expense expense = new Expense(email, name, amount, dateTime, category, notes);
+                    Expense expense = new Expense(id, amount, email, name, dateTime, category, notes);
                     expenseList.add(expense);
                     saveExpense(expense);
                     addExpenseToView(expense);
@@ -158,13 +159,13 @@ public class ExpenseTracker extends Fragment {
             Scanner scanner = new Scanner(fis);
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                Expense expense = Expense.fromString(line);
+                /*Expense expense = Expense.fromString(line);
 
                 // Add null check here
                 if (expense != null && expense.getEmail().equals(email)) {
                     expenseList.add(expense);
                     addExpenseToView(expense);
-                }
+                }*/
             }
             updateTvTotalAmount();
         } catch (IOException e) {
@@ -210,7 +211,7 @@ public class ExpenseTracker extends Fragment {
         TextView tvExpenseCategory = expenseView.findViewById(R.id.tvExpenseCategory);
 
         tvExpenseName.setText(expense.getName());
-        tvExpenseCategory.setText(expense.getCategory());
+        tvExpenseCategory.setText(expense.getType());
 
         // Format amount
         NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
@@ -267,8 +268,8 @@ public class ExpenseTracker extends Fragment {
 
         tvExpenseName.setText(expense.getName());
         tvExpenseAmount.setText(expense.getAmount() + " VND");
-        tvExpenseCategory.setText(expense.getCategory());
-        tvExpenseNotes.setText(expense.getNotes());
+        tvExpenseCategory.setText(expense.getType());
+        tvExpenseNotes.setText(expense.getDescription());
 
         builder.setView(view)
                 .setTitle("Expense Details")
@@ -299,8 +300,8 @@ public class ExpenseTracker extends Fragment {
                 getActivity(), R.array.expense_categories, android.R.layout.simple_spinner_item);
         spSpendingCategory.setAdapter(adapter);
 
-        spSpendingCategory.setSelection(adapter.getPosition(expense.getCategory()));
-        etSpendingNotes.setText(expense.getNotes());
+        spSpendingCategory.setSelection(adapter.getPosition(expense.getType()));
+        etSpendingNotes.setText(expense.getDescription());
         rgExpenseType.check(expense.getAmount() < 0 ? R.id.rbExpense : R.id.rbIncome);
 
         builder.setView(view)
@@ -322,8 +323,8 @@ public class ExpenseTracker extends Fragment {
 
                     expense.setName(name);
                     expense.setAmount(amount);
-                    expense.setCategory(category);
-                    expense.setNotes(notes);
+                    expense.setType(category);
+                    expense.setDescription(notes);
                     expense.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
 
                     int index = expenseList.indexOf(expense);
@@ -369,7 +370,7 @@ public class ExpenseTracker extends Fragment {
             Log.d("ExpenseTracker", "Content before deletion:");
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                Expense currentExpense = Expense.fromString(line);
+                /*Expense currentExpense = Expense.fromString(line);
 
                 Log.d("ExpenseTracker", "Reading line: " + line);
 
@@ -381,7 +382,7 @@ public class ExpenseTracker extends Fragment {
                     }
                 } else {
                     Log.d("ExpenseTracker", "Skipping invalid line: " + line);
-                }
+                }*/
             }
             fis.close();
 
@@ -393,6 +394,18 @@ public class ExpenseTracker extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public long getTotalExpense(String email) {
+        long totalExpense = 0;
+
+        for (Expense expense : expenseList) {
+            if (expense.getEmail().equals(email)) {
+                totalExpense += expense.getAmount();
+            }
+        }
+
+        return totalExpense;
     }
 
     private void updateExpenseListView() {

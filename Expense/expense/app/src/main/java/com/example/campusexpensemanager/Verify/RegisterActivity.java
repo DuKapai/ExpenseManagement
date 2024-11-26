@@ -58,17 +58,23 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Insert user into the database
-        long result = databaseHelper.insertUser(fullName, email, password);
+        String hashedPassword = databaseHelper.hashPassword(password);
 
-        if (result != -1) {
-            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-            // Redirect to LoginActivity after successful registration
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish(); // Close the registration screen
+        // Insert user into the database
+        if (hashedPassword != null) {
+            boolean result = databaseHelper.insertUser(fullName, email, hashedPassword);
+
+            if (result) {
+                Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+                // Redirect to LoginActivity after successful registration
+                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish(); // Close the registration screen
+            } else {
+                Toast.makeText(this, "Error creating account. Try again.", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(this, "Error creating account. Try again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error hashing password", Toast.LENGTH_SHORT).show();
         }
     }
 }

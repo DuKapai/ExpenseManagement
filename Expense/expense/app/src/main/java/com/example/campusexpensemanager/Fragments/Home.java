@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.campusexpensemanager.Entity.Expense;
-import com.example.campusexpensemanager.Expense.ExpenseTracker;
 import com.example.campusexpensemanager.R;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;

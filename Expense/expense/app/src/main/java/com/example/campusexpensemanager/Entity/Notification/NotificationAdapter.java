@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Notification;
+package com.example.campusexpensemanager;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,7 +7,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.Entity.Notification.NotificationRecord;
 
 import java.util.List;
 

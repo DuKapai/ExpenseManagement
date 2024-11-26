@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager;
+package com.example.campusexpensemanager.Models;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -12,7 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.campusexpensemanager.Expense.ExpenseTracker;
-import com.example.campusexpensemanager.Verify.LoginActivity;
+import com.example.campusexpensemanager.Fragments.Home;
+import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.Models.Verify.LoginActivity;
+import com.example.campusexpensemanager.ViewPagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 

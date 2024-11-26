@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Verify;
+package com.example.campusexpensemanager.Models.Verify;
 
 import android.content.Intent;
 import android.os.Bundle;

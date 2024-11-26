@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Expense;
+package com.example.campusexpensemanager.Fragments;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -23,8 +23,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.campusexpensemanager.Notification.Notification;
-import com.example.campusexpensemanager.Notification.NotificationRecord;
+import com.example.campusexpensemanager.Entity.Expense;
+import com.example.campusexpensemanager.Models.Notification;
+import com.example.campusexpensemanager.Entity.Notification.NotificationRecord;
 import com.example.campusexpensemanager.R;
 
 import java.io.FileOutputStream;

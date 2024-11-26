@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Notification;
+package com.example.campusexpensemanager.Entity.Notification;
 
 import android.content.Context;
 

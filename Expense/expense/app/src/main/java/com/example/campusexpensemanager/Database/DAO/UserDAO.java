@@ -1,11 +1,11 @@
-package com.example.campusexpensemanager.db.DAO;
+package com.example.campusexpensemanager.Database.DAO;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.example.campusexpensemanager.db.DatabaseHelper;
+import com.example.campusexpensemanager.Database.DatabaseHelper;
 
 
 public class UserDAO {

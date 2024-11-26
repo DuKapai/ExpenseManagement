@@ -1,4 +1,4 @@
-package com.example.campusexpensemanager.Fragments;
+package com.example.campusexpensemanager.Expense;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -46,7 +46,7 @@ public class ExpenseTracker extends Fragment {
     private LinearLayout expenseListContainer;
     private List<Expense> expenseList;
     private SharedPreferences sharedPreferences;
-    private String userId;
+    private String email;
     private ExpenseUpdateListener expenseUpdateListener;
     private Notification notification;
 
@@ -60,7 +60,7 @@ public class ExpenseTracker extends Fragment {
         expenseListContainer = view.findViewById(R.id.expenseListContainer);
 
         sharedPreferences = getActivity().getSharedPreferences("userSession", Context.MODE_PRIVATE);
-        userId = sharedPreferences.getString("USER_ID", null);
+        email = sharedPreferences.getString("USER_ID", null);
 
         expenseList = new ArrayList<>();
         loadExpenses();
@@ -129,7 +129,7 @@ public class ExpenseTracker extends Fragment {
                     String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
                     amount = expenseType.equals("Expense") ? -amount : amount;
 
-                    Expense expense = new Expense(userId, name, amount, dateTime, category, notes);
+                    Expense expense = new Expense(email, name, amount, dateTime, category, notes);
                     expenseList.add(expense);
                     saveExpense(expense);
                     addExpenseToView(expense);
@@ -161,7 +161,7 @@ public class ExpenseTracker extends Fragment {
                 Expense expense = Expense.fromString(line);
 
                 // Add null check here
-                if (expense != null && expense.getUserId().equals(userId)) {
+                if (expense != null && expense.getEmail().equals(email)) {
                     expenseList.add(expense);
                     addExpenseToView(expense);
                 }

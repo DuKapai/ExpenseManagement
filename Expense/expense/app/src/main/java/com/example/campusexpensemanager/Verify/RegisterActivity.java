@@ -2,23 +2,22 @@ package com.example.campusexpensemanager.Verify;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.campusexpensemanager.Database.DatabaseHelper;
 import com.example.campusexpensemanager.R;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText edtFullName, edtEmail, edtPassword, edtPassword2;
     private TextView tvLogin;
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -30,6 +29,9 @@ public class RegisterActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.reg_edt_password);
         edtPassword2 = findViewById(R.id.reg_edt_password2);
         tvLogin = findViewById(R.id.tv_login);
+
+        // Initialize DatabaseHelper
+        databaseHelper = new DatabaseHelper(this);
 
         // Redirect to LoginActivity if user already has an account
         tvLogin.setOnClickListener(v -> {
@@ -45,7 +47,8 @@ public class RegisterActivity extends AppCompatActivity {
         String password = edtPassword.getText().toString().trim();
         String password2 = edtPassword2.getText().toString().trim();
 
-        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || password2.isEmpty()) {
+        // Validate input
+        if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(password2)) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -55,26 +58,16 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Save account details to a file
-        saveUserData("1", fullName, email, password);
-    }
+        // Insert user into the database
+        long result = databaseHelper.insertUser(fullName, email, password);
 
-    private void saveUserData(String id, String name, String email, String password) {
-        File file = new File(getFilesDir(), "userData.txt");
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
-            String userData = id + "|" + name + "|" + email + "|" + password;
-            bw.write(userData);
-            bw.newLine();
+        if (result != -1) {
             Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-
-            // Move to LoginActivity upon successful registration
+            // Redirect to LoginActivity after successful registration
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(intent);
             finish(); // Close the registration screen
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
             Toast.makeText(this, "Error creating account. Try again.", Toast.LENGTH_SHORT).show();
         }
     }

@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.campusexpensemanager.Entity.Expense;
+import com.example.campusexpensemanager.Expense.ExpenseTracker;
 import com.example.campusexpensemanager.R;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -40,7 +41,7 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
     private LinearLayout recentExpensesLayout;
     private SharedPreferences sharedPreferences;
     private BarChart barChart;
-    private String userId;
+    private String email;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -55,7 +56,7 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
         barChart = view.findViewById(R.id.barChart);
 
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("userSession", Context.MODE_PRIVATE);
-        userId = sharedPreferences.getString("USER_ID", null);
+        email = sharedPreferences.getString("USER_ID", null);
 
         loadExpenseData();
         generateChart();  // Generate the chart on load
@@ -76,7 +77,7 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
 
             while ((line = reader.readLine()) != null) {
                 Expense expense = Expense.fromString(line);
-                if (expense.getUserId().equals(userId)) {
+                if (expense.getEmail().equals(email)) {
                     expenses.add(expense);
                     totalSpent += expense.getAmount();
 
@@ -110,7 +111,7 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";");
                 if (parts.length < 6) continue;
-                if (!parts[0].equals(userId)) continue;
+                if (!parts[0].equals(email)) continue;
                 String category = parts[4];
                 float amount = Float.parseFloat(parts[2]);
                 categoryExpenseMap.put(category, categoryExpenseMap.getOrDefault(category, 0f) + amount);

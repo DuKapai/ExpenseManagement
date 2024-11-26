@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.campusexpensemanager.Fragments.ExpenseTracker;
+import com.example.campusexpensemanager.Expense.ExpenseTracker;
 import com.example.campusexpensemanager.Fragments.Home;
 import com.example.campusexpensemanager.Verify.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;

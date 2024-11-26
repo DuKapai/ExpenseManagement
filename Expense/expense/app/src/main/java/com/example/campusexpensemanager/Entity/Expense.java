@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class Expense {
     private String id;
-    private String userId;
+    private String email;
     private String name;
     private long amount;
     private String dateTime;
@@ -16,7 +16,7 @@ public class Expense {
 
     public Expense(String userId, String name, long amount, String dateTime, String category, String notes) {
         this.id = UUID.randomUUID().toString();
-        this.userId = userId;
+        this.email = userId;
         this.name = name;
         this.amount = amount;
         this.dateTime = dateTime;
@@ -24,12 +24,12 @@ public class Expense {
         this.notes = notes;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getName() {
@@ -74,7 +74,7 @@ public class Expense {
 
     @Override
     public String toString() {
-        return userId + ";" + name + ";" + amount + ";" + dateTime + ";" + category + ";" + notes;
+        return email + ";" + name + ";" + amount + ";" + dateTime + ";" + category + ";" + notes;
     }
 
     @Override

@@ -1,29 +1,29 @@
 package com.example.campusexpensemanager.Verify;
 
-import android.app.ProgressDialog;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.campusexpensemanager.Database.DatabaseHelper;
 import com.example.campusexpensemanager.HomeActivity;
 import com.example.campusexpensemanager.R;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
     private TextView tvRegister;
-    private ProgressDialog progressDialog;
+    private DatabaseHelper databaseHelper;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +33,9 @@ public class LoginActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.edt_password);
         tvRegister = findViewById(R.id.tv_register);
 
+        // Initialize DatabaseHelper
+        databaseHelper = new DatabaseHelper(this);
+
         // Redirect to RegisterActivity if user clicks "Register here"
         tvRegister.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
@@ -41,54 +44,65 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void Login(View view) {
-        String emailStr = edtEmail.getText().toString().trim();
-        String passwordStr = edtPassword.getText().toString().trim();
+        String email = edtEmail.getText().toString().trim();
+        String password = edtPassword.getText().toString().trim();
 
-        if (emailStr.isEmpty() || passwordStr.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill in both fields", Toast.LENGTH_SHORT).show();
         } else {
-            progressDialog = ProgressDialog.show(this, "Logging in", "Please wait...", true);
-            checkLogin(emailStr, passwordStr);
+            checkLogin(email, password);
         }
     }
 
     private void checkLogin(String email, String password) {
-        File file = new File(getFilesDir(), "userData.txt");
+        // Query the database for the user with the matching email
+        Cursor cursor = null;
+        try {
+            cursor = databaseHelper.getReadableDatabase().query(
+                    DatabaseHelper.TABLE_USER,
+                    new String[]{DatabaseHelper.COLUMN_USER_ID, DatabaseHelper.COLUMN_FULL_NAME, DatabaseHelper.COLUMN_EMAIL, DatabaseHelper.COLUMN_PASSWORD},
+                    DatabaseHelper.COLUMN_EMAIL + " = ?",
+                    new String[]{email},
+                    null, null, null);
 
-        if (!file.exists()) {
-            progressDialog.dismiss();
-            Toast.makeText(this, "No user data found. Please register first.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+            if (cursor != null && cursor.moveToFirst()) {
+                @SuppressLint("Range") String storedPassword = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PASSWORD));
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] userData = line.split("\\|");
-                if (userData.length == 4 && userData[2].equals(email) && userData[3].equals(password)) {
-                    progressDialog.dismiss();
+                // Compare the stored hashed password with the entered password
+                if (storedPassword.equals(databaseHelper.hashPassword(password))) {
+                    // Password matches
+                    @SuppressLint("Range") String userId = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_ID));
+                    @SuppressLint("Range") String fullName = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_FULL_NAME));
+                    @SuppressLint("Range") String userEmail = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_EMAIL));
 
-                    // Store login session
+                    // Store login session in SharedPreferences
                     SharedPreferences sharedPreferences = getSharedPreferences("userSession", MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("USER_ID", userData[0]);
-                    editor.putString("USER_NAME", userData[1]);
-                    editor.putString("USER_EMAIL", userData[2]);
+                    editor.putString("USER_ID", userId);
+                    editor.putString("USER_NAME", fullName);
+                    editor.putString("USER_EMAIL", userEmail);
                     editor.apply();
 
                     // Move to HomeActivity
                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                     startActivity(intent);
                     finish();
-                    return;
+                } else {
+                    // Password does not match
+                    Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                // No user found with the provided email
+                Toast.makeText(this, "No user found with this email", Toast.LENGTH_SHORT).show();
             }
-            progressDialog.dismiss();
-            Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            progressDialog.dismiss();
+        } catch (SQLException e) {
+            // Handle database error
             e.printStackTrace();
-            Toast.makeText(this, "Error logging in. Try again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Database error occurred", Toast.LENGTH_SHORT).show();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 }

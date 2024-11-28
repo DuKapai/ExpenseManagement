@@ -25,8 +25,10 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -76,15 +78,27 @@ public class Home extends Fragment {
         int currentMonthExpenses = 0;
         Calendar currentDate = Calendar.getInstance();
 
+        // Define date format
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
         for (Expense expense : expenses) {
             totalSpent += expense.getAmount();
 
-            // Check if expense is in the current month
-            Calendar expenseDate = Calendar.getInstance();
-            expenseDate.setTimeInMillis(Long.parseLong(expense.getDateTime()));
-            if (expenseDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR) &&
-                    expenseDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH)) {
-                currentMonthExpenses++;
+            // Parse expense date
+            try {
+                Date expenseDate = dateFormat.parse(expense.getDateTime());
+                if (expenseDate != null) {
+                    Calendar expenseCalendar = Calendar.getInstance();
+                    expenseCalendar.setTime(expenseDate);
+
+                    // Check if expense is in the current month
+                    if (expenseCalendar.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR) &&
+                            expenseCalendar.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH)) {
+                        currentMonthExpenses++;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // Log parsing errors for debugging
             }
         }
 
@@ -97,6 +111,7 @@ public class Home extends Fragment {
 
         showRecentExpenses(expenses);
     }
+
 
     public void generateChart() {
         if (email == null) return;

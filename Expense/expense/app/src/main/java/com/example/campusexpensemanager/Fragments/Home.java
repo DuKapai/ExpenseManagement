@@ -4,15 +4,16 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+
+import com.example.campusexpensemanager.Database.DAO.ExpenseDAO;
 import com.example.campusexpensemanager.Entity.Expense;
 import com.example.campusexpensemanager.R;
 import com.github.mikephil.charting.charts.BarChart;
@@ -23,101 +24,94 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
 
-public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListener {
+public class Home extends Fragment {
 
     private TextView tvTotalSpent, tvCurrentMonthExpenses;
     private LinearLayout recentExpensesLayout;
-    private SharedPreferences sharedPreferences;
     private BarChart barChart;
     private String email;
+    private ExpenseDAO expenseDAO;
 
     @SuppressLint("MissingInflatedId")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        String fragment = getArguments().getString("fragmentTag");
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        // Initialize UI components
         tvTotalSpent = view.findViewById(R.id.tvTotalSpent);
         tvCurrentMonthExpenses = view.findViewById(R.id.tvCurrentMonthExpenses);
         recentExpensesLayout = view.findViewById(R.id.recentExpensesLayout);
         barChart = view.findViewById(R.id.barChart);
 
+        // Initialize SharedPreferences to get user email
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("userSession", Context.MODE_PRIVATE);
         email = sharedPreferences.getString("USER_ID", null);
 
+        // Initialize DAO
+        expenseDAO = new ExpenseDAO(requireContext());
+
+        // Load data
         loadExpenseData();
-        generateChart();  // Generate the chart on load
+        generateChart();
 
         return view;
     }
 
     @SuppressLint("SetTextI18n")
     public void loadExpenseData() {
+        if (email == null) return;
 
-        try (FileInputStream fis = requireActivity().openFileInput("expenseData.txt");
-             BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
+        // Fetch expenses for the logged-in user
+        List<Expense> expenses = expenseDAO.getExpensesByEmail(email);
 
-            String line;
-            List<Expense> expenses = new ArrayList<>();
-            long totalSpent = 0;
-            int currentMonthExpenses = 0;
+        long totalSpent = 0;
+        int currentMonthExpenses = 0;
+        Calendar currentDate = Calendar.getInstance();
 
-            while ((line = reader.readLine()) != null) {
-                Expense expense = Expense.fromString(line);
-                if (expense.getEmail().equals(email)) {
-                    expenses.add(expense);
-                    totalSpent += expense.getAmount();
+        for (Expense expense : expenses) {
+            totalSpent += expense.getAmount();
 
-                    // Check if expense is in the current month
-                    Calendar expenseDate = Calendar.getInstance();
-
-                    expenseDate.setTimeInMillis(Long.parseLong(expense.getDateTime()));
-                    Calendar currentDate = Calendar.getInstance();
-                    if (expenseDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR) &&
-                            expenseDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH)) {
-                        currentMonthExpenses++;
-                    }
-                }
+            // Check if expense is in the current month
+            Calendar expenseDate = Calendar.getInstance();
+            expenseDate.setTimeInMillis(Long.parseLong(expense.getDateTime()));
+            if (expenseDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR) &&
+                    expenseDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH)) {
+                currentMonthExpenses++;
             }
-            NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
-            String formattedAmount = numberFormat.format(totalSpent);
-            tvTotalSpent.setText("Total Spent: " + formattedAmount + " VND");
-            tvCurrentMonthExpenses.setText("Expenses This Month: " + currentMonthExpenses);
-            showRecentExpenses(expenses);
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
+        // Format and display data
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        String formattedAmount = numberFormat.format(totalSpent);
+
+        tvTotalSpent.setText("Total Spent: " + formattedAmount + " VND");
+        tvCurrentMonthExpenses.setText("Expenses This Month: " + currentMonthExpenses);
+
+        showRecentExpenses(expenses);
     }
 
     public void generateChart() {
+        if (email == null) return;
+
+        // Fetch expenses for the logged-in user
+        List<Expense> expenses = expenseDAO.getExpensesByEmail(email);
         Map<String, Float> categoryExpenseMap = new HashMap<>();
-        try (FileInputStream fis = getActivity().openFileInput("expenseData.txt");
-             BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length < 6) continue;
-                if (!parts[0].equals(email)) continue;
-                String category = parts[4];
-                float amount = Float.parseFloat(parts[2]);
-                categoryExpenseMap.put(category, categoryExpenseMap.getOrDefault(category, 0f) + amount);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        for (Expense expense : expenses) {
+            String category = expense.getType();
+            float amount = (float) expense.getAmount();
+            categoryExpenseMap.put(category, categoryExpenseMap.getOrDefault(category, 0f) + amount);
         }
+
+        // Prepare data for the chart
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
         int index = 0;
@@ -126,17 +120,22 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
             labels.add(entry.getKey());
             index++;
         }
+
+        // Configure chart
         BarDataSet dataSet = new BarDataSet(entries, "Category Expenses");
         BarData barData = new BarData(dataSet);
         barChart.setData(barData);
+
         XAxis xAxis = barChart.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setGranularityEnabled(true);
+
         YAxis leftAxis = barChart.getAxisLeft();
         leftAxis.setGranularity(1f);
         leftAxis.setGranularityEnabled(true);
+
         barChart.getAxisRight().setEnabled(false);
         barChart.invalidate();
     }
@@ -159,19 +158,5 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
             recentExpensesLayout.addView(expenseItem);
             count++;
         }
-
-    }
-
-    @Override
-    public void onExpenseUpdated() {
-        loadExpenseData();
-        generateChart();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadExpenseData();
-        generateChart();
     }
 }

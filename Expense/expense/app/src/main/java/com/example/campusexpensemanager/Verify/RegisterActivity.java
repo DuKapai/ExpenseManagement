@@ -11,12 +11,14 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.campusexpensemanager.Database.DAO.UserDAO;
 import com.example.campusexpensemanager.Database.DatabaseHelper;
 import com.example.campusexpensemanager.R;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText edtFullName, edtEmail, edtPassword, edtPassword2;
     private TextView tvLogin;
+    private UserDAO userDAO;
     private DatabaseHelper databaseHelper;
 
     @Override
@@ -24,13 +26,15 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        // Initialize views
         edtFullName = findViewById(R.id.reg_edt_fName);
         edtEmail = findViewById(R.id.reg_edt_email);
         edtPassword = findViewById(R.id.reg_edt_password);
         edtPassword2 = findViewById(R.id.reg_edt_password2);
         tvLogin = findViewById(R.id.tv_login);
 
-        // Initialize DatabaseHelper
+        // Initialize DAO and helpers
+        userDAO = new UserDAO(this);
         databaseHelper = new DatabaseHelper(this);
 
         // Redirect to LoginActivity if user already has an account
@@ -47,7 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
         String password = edtPassword.getText().toString().trim();
         String password2 = edtPassword2.getText().toString().trim();
 
-        // Validate input
+        // Input validation
         if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(password2)) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
@@ -58,23 +62,38 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        String hashedPassword = databaseHelper.hashPassword(password);
-
-        // Insert user into the database
-        if (hashedPassword != null) {
-            boolean result = databaseHelper.insertUser(fullName, email, hashedPassword);
-
-            if (result) {
-                Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                // Redirect to LoginActivity after successful registration
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish(); // Close the registration screen
-            } else {
-                Toast.makeText(this, "Error creating account. Try again.", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(this, "Error hashing password", Toast.LENGTH_SHORT).show();
+        if (!isValidEmail(email)) {
+            Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        // Hash password
+        String hashedPassword = databaseHelper.hashPassword(password);
+        if (hashedPassword == null) {
+            Toast.makeText(this, "Error hashing password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Insert user into database using DAO
+        long result = userDAO.insertUser(fullName, email, hashedPassword);
+        if (result != -1) {
+            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+            // Redirect to LoginActivity
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish(); // Close the registration screen
+        } else {
+            Toast.makeText(this, "Account already exists or error occurred", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Validate email format.
+     *
+     * @param email Email string to validate.
+     * @return True if the email is valid, false otherwise.
+     */
+    private boolean isValidEmail(String email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 }

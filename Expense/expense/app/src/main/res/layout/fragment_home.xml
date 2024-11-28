@@ -12,6 +12,7 @@
         android:padding="16dp"
         android:background="#FDF0DC">
 
+        <!-- Total spent display -->
         <TextView
             android:id="@+id/tvTotalSpent"
             android:layout_width="wrap_content"
@@ -22,6 +23,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"/>
 
+        <!-- Current month expenses -->
         <TextView
             android:id="@+id/tvCurrentMonthExpenses"
             android:layout_width="wrap_content"
@@ -31,6 +33,7 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="8dp"/>
 
+        <!-- Recent expenses section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,6 +42,7 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="8dp"/>
 
+        <!-- Placeholder for recent expenses -->
         <LinearLayout
             android:id="@+id/recentExpensesLayout"
             android:layout_width="match_parent"
@@ -48,8 +52,11 @@
             android:padding="16dp"
             android:elevation="8dp"
             android:layout_marginBottom="16dp">
+            <!-- Dynamically filled views for recent expenses will be added here -->
 
         </LinearLayout>
+
+        <!-- Bar chart for displaying expense statistics -->
         <com.github.mikephil.charting.charts.BarChart
             android:id="@+id/barChart"
             android:layout_width="match_parent"

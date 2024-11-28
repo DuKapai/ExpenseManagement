@@ -1,5 +1,6 @@
 package com.example.campusexpensemanager.Verify;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -7,7 +8,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campusexpensemanager.Database.DAO.UserDAO;
@@ -25,7 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     private DatabaseHelper databaseHelper;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -33,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.edt_password);
         tvRegister = findViewById(R.id.tv_register);
 
+        // Redirect to RegisterActivity if user clicks "Register here"
         userDAO = new UserDAO(this);
 
         tvRegister.setOnClickListener(v -> {
@@ -48,6 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill in both fields", Toast.LENGTH_SHORT).show();
         } else {
+            Toast.makeText(this, "Logging in, Please wait...", Toast.LENGTH_SHORT).show();
             checkLogin(email, password);
         }
     }
@@ -84,5 +87,4 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

@@ -18,8 +18,8 @@ public class ExpenseDAO {
     }
 
     // Insert a new expense into the database
-    public boolean insertExpense(String email, String name, double amount, String description, String type) {
-        return databaseHelper.insertTransaction(email, name, amount, description, type);
+    public boolean insertExpense(int id, String email, String name, double amount, String description, String type) {
+        return databaseHelper.insertTransaction(id, email, name, amount, description, type);
     }
 
     // Update an existing expense in the database

@@ -79,6 +79,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String CREATE_TABLE_NOTIFICATION = "CREATE TABLE " + TABLE_NOTIFICATION + " ("
             + COLUMN_NOTIFICATION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + COLUMN_USER_ID + "INTEGER, "
             + COLUMN_NOTIFICATION_TITLE + " VARCHAR(255), "
             + COLUMN_NOTIFICATION_EMAIL + " VARCHAR(255), "
             + COLUMN_CREATE_DATE + " DATETIME DEFAULT CURRENT_TIMESTAMP"
@@ -195,6 +196,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return success;
     }
 
+
     // Update Category
     public boolean updateCategory(int categoryId, String name) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -241,7 +243,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Insert Transaction
-    public boolean insertTransaction(String email, String name, double amount, String description, String type) {
+    public boolean insertTransaction(int id, String email, String name, double amount, String description, String type) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_TRANSACTION_EMAIL, email);

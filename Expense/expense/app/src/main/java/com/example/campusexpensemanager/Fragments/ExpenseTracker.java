@@ -48,6 +48,8 @@ public class ExpenseTracker extends Fragment {
     private int id;
     private ExpenseDAO expenseDAO;
 
+    private  long spendingLimit;
+    private  long totalAmount;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expense_tracker, container, false);
@@ -58,6 +60,8 @@ public class ExpenseTracker extends Fragment {
 
         sharedPreferences = getActivity().getSharedPreferences("userSession", Context.MODE_PRIVATE);
         email = sharedPreferences.getString("USER_ID", null);
+        // lấy giá trị bên profile
+        spendingLimit = sharedPreferences.getLong("SPENDING_LIMIT", 0);
 
         expenseList = new ArrayList<>();
         expenseDAO = new ExpenseDAO(getActivity());
@@ -93,7 +97,7 @@ public class ExpenseTracker extends Fragment {
     }
 
     private void updateTvTotalAmount() {
-        long totalAmount = 0;
+        totalAmount = 0;
         for (Expense expense : expenseList) {
             totalAmount += expense.getAmount();
         }
@@ -144,13 +148,15 @@ public class ExpenseTracker extends Fragment {
                     String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
                     amount = expenseType.equals("Expense") ? -amount : amount;
 
-                    Expense expense = new Expense(0, amount, email, name, dateTime, category, notes);
-                    boolean success = expenseDAO.insertExpense(email, name, amount, notes, expenseType);
+                    Expense expense = new Expense((expenseList.size()), amount, email, name, dateTime, category, notes);
+                    boolean success = expenseDAO.insertExpense((expenseList.size()) ,email, name, amount, notes, expenseType);
                     if (success) {
                         expenseList.add(expense);
                         addExpenseToView(expense);
                         updateTvTotalAmount();
                         notification.addRecord(new NotificationRecord("Added expense: " + name, dateTime));
+                        if(totalAmount < spendingLimit)
+                            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "Failed to add expense", Toast.LENGTH_SHORT).show();
                     }
@@ -250,16 +256,16 @@ public class ExpenseTracker extends Fragment {
                     String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
                     amount = expenseType.equals("Expense") ? -amount : amount;
 
-                    expense.setId(id);
                     expense.setName(name);
                     expense.setAmount(amount);
                     expense.setDescription(notes);
                     expense.setType(category);
 
-                    boolean success = expenseDAO.updateExpense(id, email, name, amount, notes, category);
+                    boolean success = expenseDAO.updateExpense(expense.getId(), email, name, amount, notes, category);
                     if (success) {
                         loadExpenses(); // Refresh the expense list
                         notification.addRecord(new NotificationRecord("Updated expense: " + name, expense.getDateTime()));
+                        Toast.makeText(getActivity(), "Update successfully " + name, Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "Failed to update expense", Toast.LENGTH_SHORT).show();
                     }
@@ -279,6 +285,7 @@ public class ExpenseTracker extends Fragment {
                         expenseListContainer.removeAllViews(); // Clear the list view
                         loadExpenses(); // Refresh the list
                         notification.addRecord(new NotificationRecord("Deleted expense: " + expense.getName(), expense.getDateTime()));
+                        Toast.makeText(getActivity(), "Delete successfully", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "Failed to delete expense", Toast.LENGTH_SHORT).show();
                     }
@@ -298,38 +305,4 @@ public class ExpenseTracker extends Fragment {
     public interface ExpenseUpdateListener {
         void onExpenseUpdated();
     }
-
-
-    /*private void saveExpense(Expense expense) {
-        int id = expenseDAO.insertExpense(expense.getEmail(), expense.getName(), expense.getAmount(), expense.getDescription(), expense.getType());
-        if (id != -1) {
-            expense.setId(id);
-            expenseList.add(expense);
-            updateExpenseListView();
-            updateTvTotalAmount();
-            if (expenseUpdateListener != null) {
-                expenseUpdateListener.onExpenseUpdated();
-            }
-        }
-    }*/
-
-    /*private void updateExpense(Expense expense) {
-        boolean isUpdated = expenseDAO.updateExpense(expense.getId(), expense.getEmail(), expense.getName(), expense.getAmount(), expense.getDescription(), expense.getType());
-        if (isUpdated) {
-            loadExpenses();
-            if (expenseUpdateListener != null) {
-                expenseUpdateListener.onExpenseUpdated();
-            }
-        }
-    }*/
-
-    /*private void deleteExpense(Expense expense) {
-        boolean isDeleted = expenseDAO.deleteExpense(expense.getId());
-        if (isDeleted) {
-            loadExpenses();
-            if (expenseUpdateListener != null) {
-                expenseUpdateListener.onExpenseUpdated();
-            }
-        }
-    }*/
 }

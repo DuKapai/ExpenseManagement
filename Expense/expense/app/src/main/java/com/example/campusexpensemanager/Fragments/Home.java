@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 
-public class Home extends Fragment {
+public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListener{
 
     private TextView tvTotalSpent, tvCurrentMonthExpenses;
     private LinearLayout recentExpensesLayout;
@@ -173,5 +173,11 @@ public class Home extends Fragment {
             recentExpensesLayout.addView(expenseItem);
             count++;
         }
+    }
+
+    @Override
+    public void onExpenseUpdated() {
+        loadExpenseData();
+        generateChart();
     }
 }

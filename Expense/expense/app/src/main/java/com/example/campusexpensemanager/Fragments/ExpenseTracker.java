@@ -67,6 +67,7 @@ public class ExpenseTracker extends Fragment {
         expenseDAO = new ExpenseDAO(getActivity());
 
         loadExpenses();
+        notifyExpenseUpdated();
         btnAddExpense.setOnClickListener(v -> showAddExpenseDialog());
         notification = new Notification(getActivity());
 
@@ -94,6 +95,12 @@ public class ExpenseTracker extends Fragment {
         expenseList = expenseDAO.getExpensesByEmail(email); // Fetch expenses by email
         updateExpenseListView();
         updateTvTotalAmount();
+    }
+
+    private void notifyExpenseUpdated() {
+        if (expenseUpdateListener != null) {
+            expenseUpdateListener.onExpenseUpdated();
+        }
     }
 
     private void updateTvTotalAmount() {
@@ -216,6 +223,9 @@ public class ExpenseTracker extends Fragment {
             tvExpenseTime.setText("Invalid date format");
         }
 
+        if(totalAmount < spendingLimit)
+            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND." + " Please add more incomes", Toast.LENGTH_SHORT ).show();
+
         builder.setView(view)
                 .setTitle("Expense Details")
                 .setPositiveButton("OK", null)
@@ -264,8 +274,11 @@ public class ExpenseTracker extends Fragment {
                     boolean success = expenseDAO.updateExpense(expense.getId(), email, name, amount, notes, category);
                     if (success) {
                         loadExpenses(); // Refresh the expense list
+                        notifyExpenseUpdated();
                         notification.addRecord(new NotificationRecord("Updated expense: " + name, expense.getDateTime()));
                         Toast.makeText(getActivity(), "Update successfully " + name, Toast.LENGTH_SHORT).show();
+                        if(totalAmount < spendingLimit)
+                            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "Failed to update expense", Toast.LENGTH_SHORT).show();
                     }
@@ -284,6 +297,7 @@ public class ExpenseTracker extends Fragment {
                         expenseList.remove(expense);
                         expenseListContainer.removeAllViews(); // Clear the list view
                         loadExpenses(); // Refresh the list
+                        notifyExpenseUpdated();
                         notification.addRecord(new NotificationRecord("Deleted expense: " + expense.getName(), expense.getDateTime()));
                         Toast.makeText(getActivity(), "Delete successfully", Toast.LENGTH_SHORT).show();
                     } else {
@@ -305,4 +319,9 @@ public class ExpenseTracker extends Fragment {
     public interface ExpenseUpdateListener {
         void onExpenseUpdated();
     }
+
+    public void setExpenseUpdateListener(ExpenseUpdateListener listener) {
+        this.expenseUpdateListener = listener;
+    }
+
 }

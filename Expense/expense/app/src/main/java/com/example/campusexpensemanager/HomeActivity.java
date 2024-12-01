@@ -43,6 +43,12 @@ public class HomeActivity extends AppCompatActivity implements ExpenseTracker.Ex
             startActivity(intent);
             finish();
         }
+        ExpenseTracker expenseTracker = (ExpenseTracker) getSupportFragmentManager().findFragmentByTag("EXPENSE_TRACKER");
+        Home homeFragment = (Home) getSupportFragmentManager().findFragmentByTag("HOME");
+
+        if (expenseTracker != null && homeFragment != null) {
+            expenseTracker.setExpenseUpdateListener(homeFragment);
+        }
     }
 
     private void setupBottomNavigation() {

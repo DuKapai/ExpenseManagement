@@ -1,9 +1,16 @@
 package com.example.campusexpensemanager;
 
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
+
+import com.example.campusexpensemanager.Fragments.ExpenseTracker;
+import com.example.campusexpensemanager.Fragments.Home;
+import com.example.campusexpensemanager.Fragments.NotificationFragment;
+import com.example.campusexpensemanager.Fragments.Profile;
 
 public class ViewPagerAdapter extends FragmentStateAdapter {
 
@@ -14,18 +21,23 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        switch (position){
+        Fragment fragment;
+        switch (position) {
             case 0:
-                return new Home();
+                fragment = new Home();
+                break;
             case 1:
                 return new ExpenseTracker();
             case 2:
-                return new Statistic();
+                return new NotificationFragment();
             case 3:
                 return new Profile();
             default:
                 return new Home();
         }
+        fragment.setArguments(new Bundle());
+        fragment.getArguments().putString("fragmentTag", "f" + position);
+        return fragment;
     }
 
     @Override

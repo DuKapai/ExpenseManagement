@@ -10,27 +10,48 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Name"
-        android:inputType="text"/>
+        android:inputType="text" />
 
     <EditText
         android:id="@+id/etSpendingAmount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Expectation (VND)"
-        android:inputType="number"/>
+        android:inputType="number" />
 
-    <EditText
+    <Spinner
         android:id="@+id/etSpendingCategory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Snowing"
-        android:inputType="text"/>
+        android:entries="@array/expense_categories"
+        android:spinnerMode="dropdown" />
 
     <EditText
         android:id="@+id/etSpendingNotes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Notes"
-        android:inputType="textMultiLine"/>
+        android:inputType="textMultiLine" />
+
+    <!-- RadioGroup for selecting Income or Expense -->
+    <RadioGroup
+        android:id="@+id/rgExpenseType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="16dp">
+
+        <RadioButton
+            android:id="@+id/rbIncome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Income" />
+
+        <RadioButton
+            android:id="@+id/rbExpense"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Expense" />
+    </RadioGroup>
 
 </LinearLayout>

@@ -34,8 +34,7 @@
         android:textColor="@color/white"
         android:layout_marginBottom="16dp"
         app:cornerRadius="8dp"
-        android:onClick="LoginPage"
-         />
+        android:onClick="LoginPage" />
 
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
@@ -45,7 +44,6 @@
         android:backgroundTint="@color/buttonColor"
         android:textColor="@color/white"
         app:cornerRadius="8dp"
-        android:onClick="RegisterPage"
-         />
+        android:onClick="RegisterPage" />
 
 </LinearLayout>

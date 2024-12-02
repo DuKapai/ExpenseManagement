@@ -11,10 +11,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.campusexpensemanager.Verify.LoginActivity;
+import com.example.campusexpensemanager.Fragments.ExpenseTracker;
+import com.example.campusexpensemanager.Fragments.Home;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements ExpenseTracker.ExpenseUpdateListener {
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
     BottomNavigationView bottomNavigationView;
@@ -33,16 +36,18 @@ public class HomeActivity extends AppCompatActivity {
             // If user is logged in, show the home layout
             setContentView(R.layout.activity_home);
             setupBottomNavigation();
-/*
-            // Display a Toast with the user's name or email
-            Toast.makeText(this, "Welcome, " + userName + " (" + userMail + ")", Toast.LENGTH_LONG).show();
-*/
 
         } else {
             // If no session, redirect to LoginActivity
             Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
+        }
+        ExpenseTracker expenseTracker = (ExpenseTracker) getSupportFragmentManager().findFragmentByTag("EXPENSE_TRACKER");
+        Home homeFragment = (Home) getSupportFragmentManager().findFragmentByTag("HOME");
+
+        if (expenseTracker != null && homeFragment != null) {
+            expenseTracker.setExpenseUpdateListener(homeFragment);
         }
     }
 
@@ -61,7 +66,7 @@ public class HomeActivity extends AppCompatActivity {
                     viewPager2.setCurrentItem(0);
                 } else if (id == R.id.bottom_expense_tracker) {
                     viewPager2.setCurrentItem(1);
-                } else if (id == R.id.bottom_statistic) {
+                } else if (id == R.id.bottom_notification) {
                     viewPager2.setCurrentItem(2);
                 } else if (id == R.id.bottom_profile) {
                     viewPager2.setCurrentItem(3);
@@ -81,7 +86,7 @@ public class HomeActivity extends AppCompatActivity {
                 } else if (position == 1) {
                     bottomNavigationView.getMenu().findItem(R.id.bottom_expense_tracker).setChecked(true);
                 } else if (position == 2) {
-                    bottomNavigationView.getMenu().findItem(R.id.bottom_statistic).setChecked(true);
+                    bottomNavigationView.getMenu().findItem(R.id.bottom_notification).setChecked(true);
                 } else if (position == 3) {
                     bottomNavigationView.getMenu().findItem(R.id.bottom_profile).setChecked(true);
                 }
@@ -97,5 +102,15 @@ public class HomeActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
+    }
+
+    @Override
+    public void onExpenseUpdated() {
+        Home homeFragment = (Home) getSupportFragmentManager().findFragmentByTag("f" + 0);
+
+        if (homeFragment != null) {
+            homeFragment.loadExpenseData();
+            homeFragment.generateChart();
+        }
     }
 }

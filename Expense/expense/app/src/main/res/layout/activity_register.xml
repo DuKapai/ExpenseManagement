@@ -41,7 +41,8 @@
             android:hint="Full Name"
             android:id="@+id/reg_edt_fName"
             android:padding="12dp"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:textColor="@android:color/black"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Email Input -->
@@ -58,7 +59,8 @@
             android:id="@+id/reg_edt_email"
             android:inputType="textEmailAddress"
             android:padding="12dp"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:textColor="@android:color/black"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Password Input -->
@@ -75,7 +77,8 @@
             android:id="@+id/reg_edt_password"
             android:inputType="textPassword"
             android:padding="12dp"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:textColor="@android:color/black"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Re-enter Password Input -->
@@ -92,7 +95,8 @@
             android:id="@+id/reg_edt_password2"
             android:inputType="textPassword"
             android:padding="12dp"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:textColor="@android:color/black"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Register Button -->

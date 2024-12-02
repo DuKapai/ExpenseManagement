@@ -185,6 +185,9 @@ public class ExpenseTracker extends Fragment {
         tvExpenseCategory.setText(expense.getType());
         tvExpenseAmount.setText((expense.getAmount() < 0 ? "- " : "+ ")
                 + String.format(Locale.getDefault(), "%.2f", Math.abs(expense.getAmount())) + " VND");
+        tvExpenseAmount.setTextColor(expense.getAmount() < 0
+                ? getResources().getColor(R.color.expenseColor)
+                : getResources().getColor(R.color.incomeColor));
 
         try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());

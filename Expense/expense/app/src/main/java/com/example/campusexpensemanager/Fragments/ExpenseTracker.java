@@ -47,9 +47,8 @@ public class ExpenseTracker extends Fragment {
     private Notification notification;
     private int id;
     private ExpenseDAO expenseDAO;
-
-    private  long spendingLimit;
-    private  long totalAmount;
+    private long spendingLimit;
+    private long totalAmount;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expense_tracker, container, false);
@@ -60,7 +59,7 @@ public class ExpenseTracker extends Fragment {
 
         sharedPreferences = getActivity().getSharedPreferences("userSession", Context.MODE_PRIVATE);
         email = sharedPreferences.getString("USER_ID", null);
-        // lấy giá trị bên profile
+
         spendingLimit = sharedPreferences.getLong("SPENDING_LIMIT", 0);
 
         expenseList = new ArrayList<>();
@@ -185,6 +184,9 @@ public class ExpenseTracker extends Fragment {
         tvExpenseCategory.setText(expense.getType());
         tvExpenseAmount.setText((expense.getAmount() < 0 ? "- " : "+ ")
                 + String.format(Locale.getDefault(), "%.2f", Math.abs(expense.getAmount())) + " VND");
+        tvExpenseAmount.setTextColor(expense.getAmount() < 0
+                ? getResources().getColor(R.color.expenseColor)
+                : getResources().getColor(R.color.incomeColor));
 
         try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -324,4 +326,18 @@ public class ExpenseTracker extends Fragment {
         this.expenseUpdateListener = listener;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        spendingLimit = sharedPreferences.getLong("SPENDING_LIMIT", 0);
+        notifySpendingLimitUpdated();
+    }
+
+    private void notifySpendingLimitUpdated() {
+        if (totalAmount < spendingLimit) {
+            Toast.makeText(getActivity(),
+                    "Total spending is under your limit of " + spendingLimit + " VND",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 }

@@ -9,69 +9,86 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.campusexpensemanager.Database.DatabaseHelper;
 import com.example.campusexpensemanager.Entity.User;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class UserDAO {
-    private final SQLiteDatabase db;
+    private final DatabaseHelper dbHelper;
+    private SQLiteDatabase db;
 
     public UserDAO(Context context) {
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        db = dbHelper.getWritableDatabase();
+        dbHelper = new DatabaseHelper(context);
     }
 
-    // Insert a new user
+    private SQLiteDatabase getDatabase() {
+        if (db == null || !db.isOpen()) {
+            db = dbHelper.getWritableDatabase();
+        }
+        return db;
+    }
+
     public long insertUser(String fullName, String email, String password) {
+        SQLiteDatabase db = getDatabase();
         ContentValues values = new ContentValues();
         values.put("full_name", fullName);
         values.put("email", email);
-        values.put("password", password);
-        return db.insert("User", null, values);
+
+        String hashedPassword = DatabaseHelper.hashPassword(password);
+        values.put("password", hashedPassword);
+
+        long result = db.insert("User", null, values);
+        db.close();
+        return result;
     }
 
-    // Get a user by ID
-    public Cursor getUserById(int userId) {
-        return db.rawQuery("SELECT * FROM User WHERE user_id = ?", new String[]{String.valueOf(userId)});
-    }
-
-    // Get all users
-    public Cursor getAllUsers() {
-        return db.rawQuery("SELECT * FROM User", null);
-    }
-
-    // Update a user
-    public int updateUser(int userId, String fullName, String email, String password) {
-        ContentValues values = new ContentValues();
-        values.put("full_name", fullName);
-        values.put("email", email);
-        values.put("password", password);
-        return db.update("User", values, "user_id = ?", new String[]{String.valueOf(userId)});
-    }
-
-    public List<User> getUserByEmail(String email) {
-        List<User> users = new ArrayList<>();
+    public User checkLogin(String email, String password) {
+        SQLiteDatabase db = getDatabase();
         String query = "SELECT * FROM User WHERE email = ?";
         Cursor cursor = db.rawQuery(query, new String[]{email});
 
-        if (cursor.moveToFirst()) {
-            do {
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") String storedPassword = cursor.getString(cursor.getColumnIndex("password"));
+            String hashedPassword = DatabaseHelper.hashPassword(password);
+
+            if (hashedPassword != null && hashedPassword.equals(storedPassword)) {
                 @SuppressLint("Range") User user = new User(
                         cursor.getInt(cursor.getColumnIndex("user_id")),
                         cursor.getString(cursor.getColumnIndex("full_name")),
                         cursor.getString(cursor.getColumnIndex("email")),
-                        cursor.getString(cursor.getColumnIndex("password"))
+                        storedPassword
                 );
-                users.add(user);
-            } while (cursor.moveToNext());
+                cursor.close();
+                return user; // Valid user
+            }
         }
-        cursor.close();
-        return users;
+
+        if (cursor != null) cursor.close();
+        return null; // Invalid login
     }
 
-    // Delete a user
-    public int deleteUser(int userId) {
-        return db.delete("User", "user_id = ?", new String[]{String.valueOf(userId)});
+    public boolean updateUser(String currentEmail, String newName, String newEmail, String newPassword) {
+        SQLiteDatabase db = getDatabase();
+        ContentValues values = new ContentValues();
+
+        // Update name if provided
+        if (!newName.isEmpty()) {
+            values.put("full_name", newName);
+        }
+
+        // Update email if provided
+        if (!newEmail.isEmpty()) {
+            values.put("email", newEmail);
+        }
+
+        // Update password if provided
+        if (!newPassword.isEmpty()) {
+            String hashedPassword = DatabaseHelper.hashPassword(newPassword);
+            values.put("password", hashedPassword);
+        }
+
+        // Perform the update
+        int rowsUpdated = db.update("User", values, "email = ?", new String[]{currentEmail});
+        db.close();
+
+        // Return success if at least one row was updated
+        return rowsUpdated > 0;
     }
+
 }
-

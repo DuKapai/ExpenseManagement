@@ -35,7 +35,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Initialize DAO and helpers
         userDAO = new UserDAO(this);
-        databaseHelper = new DatabaseHelper(this);
+        databaseHelper = DatabaseHelper.getInstance(this);
 
         // Redirect to LoginActivity if user already has an account
         tvLogin.setOnClickListener(v -> {
@@ -49,42 +49,47 @@ public class RegisterActivity extends AppCompatActivity {
         String fullName = edtFullName.getText().toString().trim();
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
-        String password2 = edtPassword2.getText().toString().trim();
+        String confirmPassword = edtPassword2.getText().toString().trim();
 
-        // Input validation
-        if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(password2)) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        if (!validateInput(fullName, email, password, confirmPassword)) {
             return;
         }
 
-        if (!password.equals(password2)) {
+        long result = userDAO.insertUser(fullName, email, password);
+        if (result != -1) {
+            Toast.makeText(this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
+            navigateToLogin();
+        } else {
+            Toast.makeText(this, "Email đã tồn tại hoặc có lỗi xảy ra", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Validate user input fields.
+     *
+     * @param fullName       Full name of the user.
+     * @param email          Email of the user.
+     * @param password       Password of the user.
+     * @param confirmPassword Confirm password to ensure passwords match.
+     * @return True if all inputs are valid, false otherwise.
+     */
+    private boolean validateInput(String fullName, String email, String password, String confirmPassword) {
+        if (TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (!password.equals(confirmPassword)) {
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
 
         if (!isValidEmail(email)) {
             Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
 
-        // Hash password
-        String hashedPassword = databaseHelper.hashPassword(password);
-        if (hashedPassword == null) {
-            Toast.makeText(this, "Error hashing password", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Insert user into database using DAO
-        long result = userDAO.insertUser(fullName, email, hashedPassword);
-        if (result != -1) {
-            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-            // Redirect to LoginActivity
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish(); // Close the registration screen
-        } else {
-            Toast.makeText(this, "Account already exists or error occurred", Toast.LENGTH_SHORT).show();
-        }
+        return true;
     }
 
     /**
@@ -95,5 +100,14 @@ public class RegisterActivity extends AppCompatActivity {
      */
     private boolean isValidEmail(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    /**
+     * Navigate to Login Activity.
+     */
+    private void navigateToLogin() {
+        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

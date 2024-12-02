@@ -18,9 +18,11 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+
     // Database Name and Version
     private static final String DATABASE_NAME = "expense_manager.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 9;
+    private static DatabaseHelper instance;
 
     // Table User
     public static final String TABLE_USER = "User";
@@ -52,6 +54,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_NOTIFICATION_ID = "notification_id";
     public static final String COLUMN_NOTIFICATION_TITLE = "title";
     public static final String COLUMN_NOTIFICATION_EMAIL = "email";
+
+
+    public static synchronized DatabaseHelper getInstance(Context context) {
+        if (instance == null) {
+            instance = new DatabaseHelper(context.getApplicationContext());
+        }
+        return instance;
+    }
+
 
     // Create Table Queries
     private static final String CREATE_TABLE_USER = "CREATE TABLE " + TABLE_USER + " ("
@@ -95,8 +106,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_CATEGORY);
         db.execSQL(CREATE_TABLE_TRANSACTION);
         db.execSQL(CREATE_TABLE_NOTIFICATION);
-        List<String> defaultCategories = getDefaultCategories();
-        insertDefaultCategories(defaultCategories);
     }
 
     @Override
@@ -106,6 +115,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTION);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATION);
         onCreate(db);
+    }
+
+    public void initializeData() {
+        new Thread(() -> {
+            SQLiteDatabase db = this.getWritableDatabase();
+            insertDefaultCategories(db, getDefaultCategories()); // Call here
+            db.close();
+        }).start();
     }
 
     // Insert User
@@ -143,7 +160,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Hash Password using SHA-256
-    public String hashPassword(String password) {
+    public static String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -164,8 +181,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean insertCategory(String name, boolean isDefault) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        if (!isDefault) { // Only set email for non-default categories
+        if (isDefault) {  // Đặt email cho category mặc định
             values.put(COLUMN_CATEGORY_EMAIL, "");
+        } else {  // Đặt email cho category không mặc định
+            values.put(COLUMN_CATEGORY_EMAIL, "");  // Có thể thay bằng email thực tế nếu cần
         }
         values.put(COLUMN_CATEGORY_NAME, name);
 
@@ -175,27 +194,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Insert Default Categories from a List
-    public boolean insertDefaultCategories(List<String> defaultCategories) {
-        SQLiteDatabase db = this.getWritableDatabase();
+    public void insertDefaultCategories(SQLiteDatabase db, List<String> defaultCategories) {
         db.beginTransaction(); // Start transaction for bulk insert
         boolean success = true;
+
         for (String category : defaultCategories) {
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_CATEGORY_NAME, category);
-            values.put(COLUMN_CATEGORY_EMAIL, ""); // Không có email cho category mặc định
-            long result = db.insert(TABLE_CATEGORY, null, values);
-            if (result == -1) {
-                success = false;
-                break; // Abort transaction if any insert fails
+            // Check if the category already exists
+            String checkQuery = "SELECT * FROM " + TABLE_CATEGORY + " WHERE " + COLUMN_CATEGORY_NAME + " = ?";
+            Cursor cursor = db.rawQuery(checkQuery, new String[]{category});
+
+            if (cursor.getCount() == 0) {  // If not exists, insert
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_CATEGORY_NAME, category);
+                values.put(COLUMN_CATEGORY_EMAIL, "");  // No email for default category
+                long result = db.insert(TABLE_CATEGORY, null, values);
+                if (result == -1) {
+                    success = false;
+                    break; // Abort transaction if any insert fails
+                }
             }
+            cursor.close();
         }
+
         if (success) {
             db.setTransactionSuccessful(); // Commit transaction if all inserts succeed
         }
-        db.endTransaction();
-        return success;
+        db.endTransaction(); // End transaction
     }
-
 
     // Update Category
     public boolean updateCategory(int categoryId, String name) {
@@ -284,46 +309,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Expense> getTransactionsByEmail(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
         List<Expense> transactions = new ArrayList<>();
+        Cursor cursor = null;
 
-        String query = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + COLUMN_TRANSACTION_EMAIL + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{email});
+        try {
+            String query = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + COLUMN_TRANSACTION_EMAIL + " = ?";
+            cursor = db.rawQuery(query, new String[]{email});
 
-        if (cursor.moveToFirst()) {
-            do {
-                @SuppressLint("Range")
-                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_TRANSACTION_ID));
+            if (cursor.moveToFirst()) {
+                do {
+                    @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(COLUMN_TRANSACTION_ID));
+                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_TRANSACTION_NAME));
+                    @SuppressLint("Range") double amount = cursor.getDouble(cursor.getColumnIndex(COLUMN_AMOUNT));
+                    @SuppressLint("Range") String description = cursor.getString(cursor.getColumnIndex(COLUMN_DESCRIPTION));
+                    @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex(COLUMN_TYPE));
+                    @SuppressLint("Range") String createDate = cursor.getString(cursor.getColumnIndex(COLUMN_CREATE_DATE));
 
-                @SuppressLint("Range")
-                String name = cursor.getString(cursor.getColumnIndex(COLUMN_TRANSACTION_NAME));
-
-                @SuppressLint("Range")
-                double amount = cursor.getDouble(cursor.getColumnIndex(COLUMN_AMOUNT));
-
-                @SuppressLint("Range")
-                String description = cursor.getString(cursor.getColumnIndex(COLUMN_DESCRIPTION));
-
-                @SuppressLint("Range")
-                String type = cursor.getString(cursor.getColumnIndex(COLUMN_TYPE));
-
-                @SuppressLint("Range")
-                String createDate = cursor.getString(cursor.getColumnIndex(COLUMN_CREATE_DATE));
-
-                // The category field is missing from the current database query, but can be added if needed.
-                // Assuming CATEGORY table or another method to fetch categories is in place.
-                String category = ""; // Placeholder, you can adjust as needed
-
-                // Create Expense object
-                Expense transaction = new Expense(id, amount, email, name, createDate, description, type);
-
-                transactions.add(transaction);
-            } while (cursor.moveToNext());
+                    Expense transaction = new Expense(id, amount, email, name, createDate, description, type);
+                    transactions.add(transaction);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error fetching transactions: " + e.getMessage());
+        } finally {
+            if (cursor != null) cursor.close();
+            db.close();
         }
-        cursor.close();
-        db.close();
         return transactions;
     }
-
-
 
     /**
      * Insert a notification into the Notification table.
@@ -378,33 +390,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TABLE_NOTIFICATION + " WHERE " + COLUMN_NOTIFICATION_EMAIL + " = ?",
                 new String[]{email});
     }
-
-    public boolean validateUserCredentials(String email, String password) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM User WHERE email = ? AND password = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{email, password});
-
-        boolean isValid = cursor.getCount() > 0;
-        cursor.close();
-        db.close();
-        return isValid;
-    }
-
-    public boolean updateUser(String email, String newName, String newPassword) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-
-        if (!newName.isEmpty()) {
-            values.put("fullname", newName);
-        }
-        if (!newPassword.isEmpty()) {
-            values.put("password", newPassword);
-        }
-
-        int rowsAffected = db.update("User", values, "email = ?", new String[]{email});
-        db.close();
-        return rowsAffected > 0;
-    }
-
-
 }

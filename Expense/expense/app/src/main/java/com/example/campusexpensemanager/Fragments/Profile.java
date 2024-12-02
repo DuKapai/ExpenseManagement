@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.campusexpensemanager.Database.DAO.UserDAO;
 import com.example.campusexpensemanager.Database.DatabaseHelper;
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.Verify.LoginActivity;
@@ -42,17 +43,18 @@ public class Profile extends Fragment {
 
         tvName = view.findViewById(R.id.tvName);
         tvEmail = view.findViewById(R.id.tvEmail);
+
         ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
         btnLogout = view.findViewById(R.id.btnLogout);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         etSpendingLimit = view.findViewById(R.id.etSpendingLimit);
         btnSetLimit = view.findViewById(R.id.btnSetLimit);
 
-        // Get user
-        String userEmail = sharedPreferences.getString("USER_MAIL", "No Email");
+        // Get user information from SharedPreferences
+        String userEmail = sharedPreferences.getString("USER_EMAIL", "No Email");
         String userName = sharedPreferences.getString("USER_NAME", "Unknown User");
 
-        // Show user information
+        // Display user information
         tvName.setText(userName);
         tvEmail.setText(userEmail);
 
@@ -96,50 +98,52 @@ public class Profile extends Fragment {
         builder.setView(dialogView);
 
         EditText edtNewName = dialogView.findViewById(R.id.edt_new_name);
-        EditText edtOldPassword = dialogView.findViewById(R.id.edt_old_password);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"})
+        EditText edtEmail = dialogView.findViewById(R.id.edt_new_email);
         EditText edtNewPassword = dialogView.findViewById(R.id.edt_new_password);
         Button btnUpdateProfile = dialogView.findViewById(R.id.btn_update_profile);
+
 
         builder.setTitle("Edit Profile");
         AlertDialog dialog = builder.create();
 
+
         btnUpdateProfile.setOnClickListener(v -> {
             String newName = edtNewName.getText().toString().trim();
-            String oldPassword = edtOldPassword.getText().toString().trim();
+            String newEmail = edtEmail.getText().toString().trim();
             String newPassword = edtNewPassword.getText().toString().trim();
 
-            if (!newPassword.isEmpty() && !isValidPassword(newPassword)) {
-                Toast.makeText(getActivity(), "New password must include a letter, a number, and a special character", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            UserDAO userDAO = new UserDAO(requireContext());
+            String currentEmail = sharedPreferences.getString("USER_EMAIL", "");
 
-            // Check user in database
-            if (databaseHelper.validateUserCredentials(userEmail, oldPassword)) {
-                boolean isUpdated = databaseHelper.updateUser(userEmail, newName, newPassword);
+            boolean isUpdated = userDAO.updateUser(currentEmail, newName, newEmail, newPassword);
 
-                if (isUpdated) {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    if (!newName.isEmpty()) {
-                        editor.putString("USER_NAME", newName);
-                        tvName.setText(newName);
-                    }
-                    editor.apply();
-
-                    Toast.makeText(getActivity(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getActivity(), "Failed to update profile", Toast.LENGTH_SHORT).show();
+            if (isUpdated) {
+                // Update shared preferences
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                if (!newName.isEmpty()) {
+                    editor.putString("USER_NAME", newName);
                 }
-            } else {
-                Toast.makeText(getActivity(), "Invalid current password", Toast.LENGTH_SHORT).show();
-            }
+                if (!newEmail.isEmpty()) {
+                    editor.putString("USER_EMAIL", newEmail);
+                }
+                editor.apply();
 
-            dialog.dismiss();
+                // Update UI
+                if (!newName.isEmpty()) {
+                    tvName.setText(newName);
+                }
+                if (!newEmail.isEmpty()) {
+                    tvEmail.setText(newEmail);
+                }
+
+                Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } else {
+                Toast.makeText(requireContext(), "Failed to update profile. Please try again.", Toast.LENGTH_SHORT).show();
+            }
         });
 
         dialog.show();
-    }
-
-    private boolean isValidPassword(String password) {
-        return password.matches("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$");
     }
 }

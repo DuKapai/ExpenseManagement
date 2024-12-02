@@ -20,7 +20,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Name and Version
     private static final String DATABASE_NAME = "expense_manager.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
 
     // Table User
     public static final String TABLE_USER = "User";
@@ -378,5 +378,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TABLE_NOTIFICATION + " WHERE " + COLUMN_NOTIFICATION_EMAIL + " = ?",
                 new String[]{email});
     }
+
+    public boolean validateUserCredentials(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM User WHERE email = ? AND password = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{email, password});
+
+        boolean isValid = cursor.getCount() > 0;
+        cursor.close();
+        db.close();
+        return isValid;
+    }
+
+    public boolean updateUser(String email, String newName, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        if (!newName.isEmpty()) {
+            values.put("fullname", newName);
+        }
+        if (!newPassword.isEmpty()) {
+            values.put("password", newPassword);
+        }
+
+        int rowsAffected = db.update("User", values, "email = ?", new String[]{email});
+        db.close();
+        return rowsAffected > 0;
+    }
+
 
 }

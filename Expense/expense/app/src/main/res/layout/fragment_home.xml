@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@drawable/gradient_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#FDF0DC">
+
+        <!-- Total spent display -->
+        <TextView
+            android:id="@+id/tvTotalSpent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total Spent: 0 VND"
+            android:textSize="24sp"
+            android:textColor="@color/buttonColor"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Current month expenses -->
+        <TextView
+            android:id="@+id/tvCurrentMonthExpenses"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Expenses This Month: 0"
+            android:textSize="20sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Recent expenses section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recent Expenses"
+            android:textSize="20sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Placeholder for recent expenses -->
+        <LinearLayout
+            android:id="@+id/recentExpensesLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/light_orange"
+            android:padding="16dp"
+            android:elevation="8dp"
+            android:layout_marginBottom="16dp">
+            <!-- Dynamically filled views for recent expenses will be added here -->
+
+        </LinearLayout>
+
+        <!-- Bar chart for displaying expense statistics -->
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChart"
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+            android:background="#F8EDDE" />
+    </LinearLayout>
+</ScrollView>

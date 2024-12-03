@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -41,8 +42,8 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
     private BarChart barChart;
     private String email;
     private ExpenseDAO expenseDAO;
+    private EditText startDate, endDate;
 
-    @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
@@ -52,6 +53,8 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
         tvCurrentMonthExpenses = view.findViewById(R.id.tvCurrentMonthExpenses);
         recentExpensesLayout = view.findViewById(R.id.recentExpensesLayout);
         barChart = view.findViewById(R.id.barChart);
+        startDate = view.findViewById(R.id.startDate);
+        endDate = view.findViewById(R.id.endDate);
 
         // Initialize SharedPreferences to get user email
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("userSession", Context.MODE_PRIVATE);
@@ -62,9 +65,36 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
 
         // Load data
         loadExpenseData();
-        generateChart();
+        setupDateRangeSelection(); // Handle date range selection
 
         return view;
+    }
+
+    private void setupDateRangeSelection() {
+        // Set default dates
+        startDate.setText(getFirstDayOfMonth());
+        endDate.setText(getLastDayOfMonth());
+
+        View.OnFocusChangeListener focusChangeListener = (v, hasFocus) -> {
+            if (!hasFocus) {
+                generateChart(); // Update chart when date fields lose focus
+            }
+        };
+
+        startDate.setOnFocusChangeListener(focusChangeListener);
+        endDate.setOnFocusChangeListener(focusChangeListener);
+    }
+
+    private String getFirstDayOfMonth() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+    }
+
+    private String getLastDayOfMonth() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
     }
 
     @SuppressLint("SetTextI18n")
@@ -112,18 +142,40 @@ public class Home extends Fragment implements ExpenseTracker.ExpenseUpdateListen
         showRecentExpenses(expenses);
     }
 
-
     public void generateChart() {
         if (email == null) return;
+
+        // Parse date range
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Date start = null, end = null;
+        try {
+            if (!startDate.getText().toString().isEmpty()) {
+                start = dateFormat.parse(startDate.getText().toString());
+            }
+            if (!endDate.getText().toString().isEmpty()) {
+                end = dateFormat.parse(endDate.getText().toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Log parsing errors
+        }
 
         // Fetch expenses for the logged-in user
         List<Expense> expenses = expenseDAO.getExpensesByEmail(email);
         Map<String, Float> categoryExpenseMap = new HashMap<>();
 
         for (Expense expense : expenses) {
-            String category = expense.getType();
-            float amount = (float) expense.getAmount();
-            categoryExpenseMap.put(category, categoryExpenseMap.getOrDefault(category, 0f) + amount);
+            try {
+                Date expenseDate = dateFormat.parse(expense.getDateTime());
+                if (expenseDate != null &&
+                        (start == null || !expenseDate.before(start)) &&
+                        (end == null || !expenseDate.after(end))) {
+                    String category = expense.getType();
+                    float amount = (float) expense.getAmount();
+                    categoryExpenseMap.put(category, categoryExpenseMap.getOrDefault(category, 0f) + amount);
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // Handle parsing errors
+            }
         }
 
         // Prepare data for the chart

@@ -61,32 +61,36 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="From:" />
+                android:text="From:"
+                android:textColor="@color/textColorPrimary"/>
 
             <EditText
                 android:id="@+id/startDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:inputType="date" />
+                android:inputType="date"
+                android:textColor="@color/textColorPrimary"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="To:" />
+                android:text="To:"
+                android:textColor="@color/textColorPrimary"/>
 
             <EditText
                 android:id="@+id/endDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:inputType="date" />
+                android:inputType="date"
+                android:textColor="@color/textColorPrimary"/>
         </LinearLayout>
 
         <com.github.mikephil.charting.charts.BarChart
             android:id="@+id/barChart"
             android:layout_width="match_parent"
-            android:layout_height="430dp"
+            android:layout_height="450dp"
             android:background="#F8EDDE" />
     </LinearLayout>
 </ScrollView>

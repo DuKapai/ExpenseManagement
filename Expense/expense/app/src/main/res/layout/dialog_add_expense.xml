@@ -19,12 +19,26 @@
         android:hint="Expectation (VND)"
         android:inputType="number" />
 
-    <Spinner
-        android:id="@+id/etSpendingCategory"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:entries="@array/expense_categories"
-        android:spinnerMode="dropdown" />
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/etSpendingCategory"
+            android:layout_width="250dp"
+            android:layout_height="match_parent"
+            android:entries="@array/expense_categories"
+            android:spinnerMode="dropdown" />
+
+        <Button
+            android:id="@+id/btnAddCategory"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:backgroundTint="@color/buttonColor"
+            android:text="Add"
+            android:textColor="@color/textColorPrimary"/>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/etSpendingNotes"
@@ -33,7 +47,6 @@
         android:hint="Notes"
         android:inputType="textMultiLine" />
 
-    <!-- RadioGroup for selecting Income or Expense -->
     <RadioGroup
         android:id="@+id/rgExpenseType"
         android:layout_width="match_parent"

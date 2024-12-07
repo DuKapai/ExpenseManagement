@@ -52,15 +52,49 @@
             android:padding="16dp"
             android:elevation="8dp"
             android:layout_marginBottom="16dp">
-            <!-- Dynamically filled views for recent expenses will be added here -->
 
         </LinearLayout>
 
-        <!-- Bar chart for displaying expense statistics -->
+        <!-- Date range selection -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="From:"
+                android:textColor="@color/textColorPrimary"/>
+
+            <EditText
+                android:id="@+id/startDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="date"
+                android:textColor="@color/textColorPrimary"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To:"
+                android:textColor="@color/textColorPrimary"/>
+
+            <EditText
+                android:id="@+id/endDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="date"
+                android:textColor="@color/textColorPrimary"/>
+        </LinearLayout>
+
         <com.github.mikephil.charting.charts.BarChart
             android:id="@+id/barChart"
             android:layout_width="match_parent"
-            android:layout_height="500dp"
+            android:layout_height="450dp"
             android:background="#F8EDDE" />
     </LinearLayout>
 </ScrollView>

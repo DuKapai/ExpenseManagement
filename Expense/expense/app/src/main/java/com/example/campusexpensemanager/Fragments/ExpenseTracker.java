@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -20,21 +21,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.campusexpensemanager.Database.DAO.CategoryDAO;
 import com.example.campusexpensemanager.Database.DAO.ExpenseDAO;
+import com.example.campusexpensemanager.Entity.Category;
 import com.example.campusexpensemanager.Entity.Expense;
 import com.example.campusexpensemanager.Models.Notification;
 import com.example.campusexpensemanager.Entity.Notification.NotificationRecord;
 import com.example.campusexpensemanager.R;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 
 public class ExpenseTracker extends Fragment {
 
@@ -112,20 +112,6 @@ public class ExpenseTracker extends Fragment {
         tvTvTotalAmount.setText(formattedAmount + " VND");
     }
 
-    private String readExpenseDataFromFile() {
-        StringBuilder stringBuilder = new StringBuilder();
-        try (FileInputStream fis = getActivity().openFileInput("expenseData.txt");
-             Scanner scanner = new Scanner(fis)) {
-            while (scanner.hasNextLine()) {
-                stringBuilder.append(scanner.nextLine()).append("\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Error reading file.";
-        }
-        return stringBuilder.toString();
-    }
-
     private void showAddExpenseDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         View view = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
@@ -135,6 +121,22 @@ public class ExpenseTracker extends Fragment {
         Spinner spSpendingCategory = view.findViewById(R.id.etSpendingCategory);
         EditText etSpendingNotes = view.findViewById(R.id.etSpendingNotes);
         RadioGroup rgExpenseType = view.findViewById(R.id.rgExpenseType);
+        Button btnAddCategory = view.findViewById(R.id.btnAddCategory);
+
+        // Initialize category spinner
+        CategoryDAO categoryDAO = new CategoryDAO(getActivity());
+        categoryDAO.insertDefaultCategoriesIfNeeded(email); // Ensure default categories are present
+        List<Category> categoryList = categoryDAO.getCategoriesByEmail(email);
+        List<String> categoryNames = new ArrayList<>();
+        for (Category category : categoryList) {
+            categoryNames.add(category.getName());
+        }
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, categoryNames);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spSpendingCategory.setAdapter(categoryAdapter);
+
+        // Add new category logic
+        btnAddCategory.setOnClickListener(v -> showUpdateCategoryDialog(categoryDAO, categoryAdapter, categoryNames));
 
         builder.setView(view)
                 .setTitle("Add Expense")
@@ -155,14 +157,12 @@ public class ExpenseTracker extends Fragment {
                     amount = expenseType.equals("Expense") ? -amount : amount;
 
                     Expense expense = new Expense((expenseList.size()), amount, email, name, dateTime, category, notes);
-                    boolean success = expenseDAO.insertExpense((expenseList.size()) ,email, name, amount, notes, expenseType);
+                    boolean success = expenseDAO.insertExpense((expenseList.size()), email, name, amount, notes, expenseType);
                     if (success) {
                         expenseList.add(expense);
                         addExpenseToView(expense);
                         updateTvTotalAmount();
                         notification.addRecord(new NotificationRecord("Added expense: " + name, dateTime));
-                        if(totalAmount < spendingLimit)
-                            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "Failed to add expense", Toast.LENGTH_SHORT).show();
                     }
@@ -170,6 +170,78 @@ public class ExpenseTracker extends Fragment {
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
+    }
+
+    private void showUpdateCategoryDialog(CategoryDAO categoryDAO, ArrayAdapter<String> categoryAdapter, List<String> categoryNames) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        View view = getLayoutInflater().inflate(R.layout.dialog_update_category, null);
+
+        EditText etCategoryName = view.findViewById(R.id.etCategoryName);
+        Button btnAddCategory = view.findViewById(R.id.btnAddCategory);
+        Button btnDeleteCategory = view.findViewById(R.id.btnDeleteCategory);
+
+        builder.setView(view)
+                .setTitle("Update Categories")
+                .setPositiveButton("Done", null)
+                .create()
+                .show();
+
+        btnAddCategory.setOnClickListener(v -> {
+            String newCategoryName = etCategoryName.getText().toString().trim();
+            if (TextUtils.isEmpty(newCategoryName)) {
+                Toast.makeText(getActivity(), "Category name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Ensure no duplicates
+            if (categoryNames.contains(newCategoryName) || CategoryDAO.DEFAULT_CATEGORIES.contains(newCategoryName)) {
+                Toast.makeText(getActivity(), "Category already exists", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            boolean success = categoryDAO.insertCategory(email, newCategoryName);
+            if (success) {
+                categoryNames.add(newCategoryName);
+                categoryAdapter.notifyDataSetChanged();
+                Toast.makeText(getActivity(), "Category added successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), "Failed to add category", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnDeleteCategory.setOnClickListener(v -> {
+            String categoryToDelete = etCategoryName.getText().toString().trim();
+            if (TextUtils.isEmpty(categoryToDelete)) {
+                Toast.makeText(getActivity(), "Please enter a category to delete", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Prevent deletion of default categories
+            if (CategoryDAO.DEFAULT_CATEGORIES.contains(categoryToDelete)) {
+                Toast.makeText(getActivity(), "Cannot delete default categories", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Check if category exists in the database
+            Category category = categoryDAO.getCategoriesByEmail(email).stream()
+                    .filter(cat -> cat.getName().equals(categoryToDelete))
+                    .findFirst()
+                    .orElse(null);
+
+            if (category == null) {
+                Toast.makeText(getActivity(), "Category not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            boolean success = categoryDAO.deleteCategory(category.getId());
+            if (success) {
+                categoryNames.remove(categoryToDelete);
+                categoryAdapter.notifyDataSetChanged();
+                Toast.makeText(getActivity(), "Category deleted successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), "Failed to delete category", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void addExpenseToView(Expense expense) {
@@ -247,9 +319,23 @@ public class ExpenseTracker extends Fragment {
         EditText etSpendingNotes = view.findViewById(R.id.etSpendingNotes);
         RadioGroup rgExpenseType = view.findViewById(R.id.rgExpenseType);
 
+        // Initialize with existing data
         etSpendingName.setText(expense.getName());
-        etSpendingAmount.setText(String.valueOf(expense.getAmount()));
+        etSpendingAmount.setText(String.valueOf(Math.abs(expense.getAmount())));
         etSpendingNotes.setText(expense.getDescription());
+
+        CategoryDAO categoryDAO = new CategoryDAO(getActivity());
+        List<Category> categoryList = categoryDAO.getCategoriesByEmail(email);
+        List<String> categoryNames = new ArrayList<>();
+        for (Category category : categoryList) {
+            categoryNames.add(category.getName());
+        }
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, categoryNames);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spSpendingCategory.setAdapter(categoryAdapter);
+
+        // Pre-select category
+        spSpendingCategory.setSelection(categoryNames.indexOf(expense.getType()));
 
         builder.setView(view)
                 .setTitle("Edit Expense")
@@ -278,9 +364,7 @@ public class ExpenseTracker extends Fragment {
                         loadExpenses(); // Refresh the expense list
                         notifyExpenseUpdated();
                         notification.addRecord(new NotificationRecord("Updated expense: " + name, expense.getDateTime()));
-                        Toast.makeText(getActivity(), "Update successfully " + name, Toast.LENGTH_SHORT).show();
-                        if(totalAmount < spendingLimit)
-                            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "Updated successfully", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getActivity(), "Failed to update expense", Toast.LENGTH_SHORT).show();
                     }

@@ -14,12 +14,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.campusexpensemanager.Database.DAO.UserDAO;
 import com.example.campusexpensemanager.Database.DatabaseHelper;
+import com.example.campusexpensemanager.Verify.LoginActivity;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.regex.Pattern;
+
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.Verify.LoginActivity;
 
@@ -53,6 +63,7 @@ public class Profile extends Fragment {
         // Get user information from SharedPreferences
         String userEmail = sharedPreferences.getString("USER_EMAIL", "No Email");
         String userName = sharedPreferences.getString("USER_NAME", "Unknown User");
+        String userMail = sharedPreferences.getString("USER_MAIL", "No Email");
 
         // Display user information
         tvName.setText(userName);

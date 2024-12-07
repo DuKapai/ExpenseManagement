@@ -20,15 +20,15 @@ public class CategoryDAO {
     public static final List<String> DEFAULT_CATEGORIES = Arrays.asList("Family", "Food", "Drink", "Other");
 
     public CategoryDAO(Context context) {
-        databaseHelper = new DatabaseHelper(context);
+        databaseHelper = DatabaseHelper.getInstance(context);
         db = databaseHelper.getWritableDatabase();
     }
 
     public boolean insertCategory(String email, String name) {
         ContentValues values = new ContentValues();
-        values.put("email", email);
-        values.put("name", name);
-        long result = db.insert("categories", null, values);
+        values.put(DatabaseHelper.COLUMN_CATEGORY_EMAIL, email);
+        values.put(DatabaseHelper.COLUMN_CATEGORY_NAME, name);
+        long result = db.insert(DatabaseHelper.TABLE_CATEGORY, null, values);
         return result != -1;
     }
 
@@ -48,34 +48,31 @@ public class CategoryDAO {
 
     public boolean updateCategory(int id, String email, String name) {
         ContentValues values = new ContentValues();
-        values.put("email", email);
-        values.put("name", name);
-        int rowsUpdated = db.update("categories", values, "id = ?", new String[]{String.valueOf(id)});
+        values.put(DatabaseHelper.COLUMN_CATEGORY_EMAIL, email);
+        values.put(DatabaseHelper.COLUMN_CATEGORY_NAME, name);
+        int rowsUpdated = db.update(DatabaseHelper.TABLE_CATEGORY, values, DatabaseHelper.COLUMN_CATEGORY_ID + " = ?", new String[]{String.valueOf(id)});
         return rowsUpdated > 0;
     }
 
     public boolean deleteCategory(int id) {
-        int rowsDeleted = db.delete("categories", "id = ?", new String[]{String.valueOf(id)});
+        int rowsDeleted = db.delete(DatabaseHelper.TABLE_CATEGORY, DatabaseHelper.COLUMN_CATEGORY_ID + " = ?", new String[]{String.valueOf(id)});
         return rowsDeleted > 0;
     }
 
     public List<Category> getCategoriesByEmail(String email) {
         List<Category> categories = new ArrayList<>();
-        //SQLiteDatabase db = databaseHelper.getReadableDatabase();
-
-        String query = "SELECT * FROM " + DatabaseHelper.TABLE_CATEGORY + " WHERE " + DatabaseHelper.COLUMN_CATEGORY_EMAIL + " = ?"; // Changed table name
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_CATEGORY + " WHERE " + DatabaseHelper.COLUMN_CATEGORY_EMAIL + " = ?";
         Cursor cursor = db.rawQuery(query, new String[]{email});
 
         if (cursor.moveToFirst()) {
             do {
                 @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CATEGORY_ID));
                 @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CATEGORY_NAME));
-                categories.add(new Category(id, name, email));
+                categories.add(new Category(id, email, name));
             } while (cursor.moveToNext());
         }
 
         cursor.close();
-        //db.close();
         return categories;
     }
 }

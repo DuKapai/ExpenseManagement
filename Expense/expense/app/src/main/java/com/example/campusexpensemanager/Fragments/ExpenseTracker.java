@@ -29,15 +29,12 @@ import com.example.campusexpensemanager.Models.Notification;
 import com.example.campusexpensemanager.Entity.Notification.NotificationRecord;
 import com.example.campusexpensemanager.R;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 
 public class ExpenseTracker extends Fragment {
 

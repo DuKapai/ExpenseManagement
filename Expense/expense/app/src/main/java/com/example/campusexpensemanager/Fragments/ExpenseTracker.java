@@ -23,11 +23,11 @@ import androidx.fragment.app.Fragment;
 
 import com.example.campusexpensemanager.Database.DAO.CategoryDAO;
 import com.example.campusexpensemanager.Database.DAO.ExpenseDAO;
+import com.example.campusexpensemanager.Database.DAO.NotiDAO;
 import com.example.campusexpensemanager.Entity.Category;
 import com.example.campusexpensemanager.Entity.Expense;
-import com.example.campusexpensemanager.Models.Notification;
-import com.example.campusexpensemanager.Entity.Notification.NotificationRecord;
 import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.Utils.Utils;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -44,11 +44,10 @@ public class ExpenseTracker extends Fragment {
     private SharedPreferences sharedPreferences;
     private String email;
     private ExpenseUpdateListener expenseUpdateListener;
-    private Notification notification;
-    private int id;
     private ExpenseDAO expenseDAO;
     private long spendingLimit;
     private long totalAmount;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expense_tracker, container, false);
@@ -68,7 +67,6 @@ public class ExpenseTracker extends Fragment {
         loadExpenses();
         notifyExpenseUpdated();
         btnAddExpense.setOnClickListener(v -> showAddExpenseDialog());
-        notification = new Notification(getActivity());
 
         return view;
     }
@@ -155,14 +153,15 @@ public class ExpenseTracker extends Fragment {
                     String dateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                     String expenseType = (rgExpenseType.getCheckedRadioButtonId() == R.id.rbIncome) ? "Income" : "Expense";
                     amount = expenseType.equals("Expense") ? -amount : amount;
-
                     Expense expense = new Expense((expenseList.size()), amount, email, name, dateTime, category, notes);
                     boolean success = expenseDAO.insertExpense((expenseList.size()), email, name, amount, notes, expenseType);
                     if (success) {
                         expenseList.add(expense);
                         addExpenseToView(expense);
                         updateTvTotalAmount();
-                        notification.addRecord(new NotificationRecord("Added expense: " + name, dateTime));
+                        NotiDAO notiDAO = new NotiDAO(getActivity());
+                        notiDAO.addNoti("Added expense: " + name + " ; Amount: " + amount + " ; Type: " + expenseType, email, "Add");
+                        Utils.showExpenseNotice(getActivity(), "Added expense: " + name, amount);
                     } else {
                         Toast.makeText(getActivity(), "Failed to add expense", Toast.LENGTH_SHORT).show();
                     }
@@ -297,8 +296,8 @@ public class ExpenseTracker extends Fragment {
             tvExpenseTime.setText("Invalid date format");
         }
 
-        if(totalAmount < spendingLimit)
-            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND." + " Please add more incomes", Toast.LENGTH_SHORT ).show();
+        if (totalAmount < spendingLimit)
+            Toast.makeText(getActivity(), "Total spending is under your limit of " + spendingLimit + " VND." + " Please add more incomes", Toast.LENGTH_SHORT).show();
 
         builder.setView(view)
                 .setTitle("Expense Details")
@@ -363,8 +362,9 @@ public class ExpenseTracker extends Fragment {
                     if (success) {
                         loadExpenses(); // Refresh the expense list
                         notifyExpenseUpdated();
-                        notification.addRecord(new NotificationRecord("Updated expense: " + name, expense.getDateTime()));
-                        Toast.makeText(getActivity(), "Updated successfully", Toast.LENGTH_SHORT).show();
+                        NotiDAO notiDAO = new NotiDAO(getActivity());
+                        notiDAO.addNoti("Updatede: " + name + " ; Amount: " + amount + " ; Type: " + expenseType, email, "Update");
+                        Utils.showExpenseNotice(getActivity(), "Updated expense: " + name, amount);
                     } else {
                         Toast.makeText(getActivity(), "Failed to update expense", Toast.LENGTH_SHORT).show();
                     }
@@ -384,8 +384,9 @@ public class ExpenseTracker extends Fragment {
                         expenseListContainer.removeAllViews(); // Clear the list view
                         loadExpenses(); // Refresh the list
                         notifyExpenseUpdated();
-                        notification.addRecord(new NotificationRecord("Deleted expense: " + expense.getName(), expense.getDateTime()));
-                        Toast.makeText(getActivity(), "Delete successfully", Toast.LENGTH_SHORT).show();
+                        NotiDAO notiDAO = new NotiDAO(getActivity());
+                        notiDAO.addNoti("Deleted expense: " + expense.getName(), email, "Delete");
+                        Utils.showExpenseNotice(getActivity(), "Deleted expense: " + expense.getName(), Double.valueOf(0));
                     } else {
                         Toast.makeText(getActivity(), "Failed to delete expense", Toast.LENGTH_SHORT).show();
                     }

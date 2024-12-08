@@ -1,4 +1,5 @@
 package com.example.campusexpensemanager.Entity.Notification;
+
 import java.util.Objects;
 public class NotificationRecord {
     private String userId;

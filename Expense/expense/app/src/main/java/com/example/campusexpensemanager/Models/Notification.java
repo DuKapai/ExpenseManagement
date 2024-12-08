@@ -35,6 +35,7 @@ public class Notification {
 
     // Load all notifications from file
     public List<NotificationRecord> loadNotifications() {
+        // đang load từ file ra cần sửa lại
         List<NotificationRecord> notifications = new ArrayList<>();
         try (FileInputStream fis = context.openFileInput(FILE_NAME)) {
             Scanner scanner = new Scanner(fis);

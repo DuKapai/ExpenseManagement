@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.example.campusexpensemanager.Entity.Expense;
+import com.example.campusexpensemanager.Entity.Noti;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -21,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Name and Version
     private static final String DATABASE_NAME = "expense_manager.db";
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 11;
     private static DatabaseHelper instance;
 
     // Table User
@@ -55,14 +56,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_NOTIFICATION_TITLE = "title";
     public static final String COLUMN_NOTIFICATION_EMAIL = "email";
 
-
     public static synchronized DatabaseHelper getInstance(Context context) {
         if (instance == null) {
             instance = new DatabaseHelper(context.getApplicationContext());
         }
         return instance;
     }
-
 
     // Create Table Queries
     private static final String CREATE_TABLE_USER = "CREATE TABLE " + TABLE_USER + " ("
@@ -90,9 +89,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String CREATE_TABLE_NOTIFICATION = "CREATE TABLE " + TABLE_NOTIFICATION + " ("
             + COLUMN_NOTIFICATION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + COLUMN_USER_ID + "INTEGER, "
             + COLUMN_NOTIFICATION_TITLE + " VARCHAR(255), "
             + COLUMN_NOTIFICATION_EMAIL + " VARCHAR(255), "
+            + COLUMN_TYPE + " VARCHAR(255), "
             + COLUMN_CREATE_DATE + " DATETIME DEFAULT CURRENT_TIMESTAMP"
             + ");";
 
@@ -344,11 +343,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param email The email associated with the notification.
      * @return The row ID of the newly inserted row, or -1 if an error occurred.
      */
-    public long insertNotification(String title, String email) {
+    public long insertNotification(String title, String email, String type) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NOTIFICATION_TITLE, title);
         values.put(COLUMN_NOTIFICATION_EMAIL, email);  // Insert the email
+        values.put(COLUMN_TYPE, type);  // Insert the email
 
         long result = db.insert(TABLE_NOTIFICATION, null, values);
         db.close();
@@ -385,9 +385,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param email The email to filter notifications by.
      * @return A Cursor object containing rows from the Notification table filtered by the email.
      */
-    public Cursor getNotificationsByEmail(String email) {
+    public List<Noti> getNotificationsByEmail(String email) {
+        List<Noti> notifications = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_NOTIFICATION + " WHERE " + COLUMN_NOTIFICATION_EMAIL + " = ?",
-                new String[]{email});
+
+        // Truy vấn lấy dữ liệu
+        Cursor cursor = db.rawQuery(
+                "SELECT * FROM " + TABLE_NOTIFICATION + " WHERE " + COLUMN_NOTIFICATION_EMAIL + " = ?",
+                new String[]{email}
+        );
+
+        // Duyệt qua kết quả và thêm vào danh sách
+        if (cursor.moveToFirst()) {
+            do {
+                Noti notification = new Noti(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NOTIFICATION_ID)),
+                        cursor.getInt(0),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOTIFICATION_TITLE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOTIFICATION_EMAIL)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TYPE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATE_DATE))
+                );
+                notifications.add(notification);
+            } while (cursor.moveToNext());
+        }
+
+        // Đóng Cursor và database
+        cursor.close();
+        db.close();
+
+        return notifications;
     }
+
 }
